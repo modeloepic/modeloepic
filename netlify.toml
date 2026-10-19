@@ -1,0 +1,7 @@
+# Netlify: sitio 100% estático, sin comando de build.
+# La carpeta public/ ya trae el bundle compilado (public/assets/app.js).
+# El dominio modeloepic.com se conecta en el panel de Netlify
+# (Site settings -> Domain management) y Porkbun apunta los DNS ahí.
+
+[build]
+  publish = "public"

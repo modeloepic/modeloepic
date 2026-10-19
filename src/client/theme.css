@@ -1,0 +1,94 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Cinzel:wght@600;700;800&family=IBM+Plex+Mono:wght@500;600;700&display=swap');
+@import "tailwindcss";
+@import "tailwindcss-safe-area";
+
+@theme {
+  --text-xs: 12px;
+  --text-xs--line-height: 16px;
+  --text-sm: 14px;
+  --text-sm--line-height: 20px;
+  --text-base: 16px;
+  --text-base--line-height: 24px;
+  --text-lg: 18px;
+  --text-lg--line-height: 28px;
+  --text-xl: 20px;
+  --text-xl--line-height: 28px;
+  --text-2xl: 24px;
+  --text-2xl--line-height: 32px;
+  --text-3xl: 30px;
+  --text-3xl--line-height: 36px;
+  --text-4xl: 36px;
+  --text-4xl--line-height: 40px;
+  --text-5xl: 48px;
+  --text-5xl--line-height: 52px;
+
+  --font-sans: "Archivo", system-ui, sans-serif;
+  --font-display: "Cinzel", "Archivo", serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+:root {
+  color-scheme: dark;
+  /* Paleta derivada del logo oficial Epic: carbón profundo, oro metálico, marfil */
+  --bg: #0c0c0e;
+  --surface: #16161a;
+  --text: #f3edda;
+  --dim: #a79d86;
+  --border: #2e2c26;
+  --accent: #c9a227;
+  --accent-bright: #e6c65c;
+  --gold-ink: #1c1503;
+  --live: #d84b3a;
+  --board: #08080a;
+  --board-surface: #141417;
+  --board-border: #2b2a24;
+  --board-text: #f3edda;
+  --board-dim: #9d947e;
+  --radius: 10px;
+  --space-surface: var(--surface);
+  --space-surface-alt: var(--surface);
+  --space-muted: var(--dim);
+  --space-border: var(--border);
+  --space-accent: var(--accent);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0a0a0c;
+    --surface: #141417;
+    --board: #060607;
+    --board-surface: #111113;
+  }
+}
+
+/* Oro metálico del logo: relleno para botones y distintivos principales */
+.gold-fill {
+  background: linear-gradient(165deg, #eed688 0%, #e6c65c 38%, #c9a227 72%, #9c7c1e 100%);
+  color: var(--gold-ink);
+}
+
+/* Texto en oro metálico para titulares de marca */
+.gold-text {
+  background: linear-gradient(170deg, #f0dc96 0%, #e6c65c 45%, #c9a227 80%, #a8842a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Filete dorado fino, como el aro de la ficha del logo */
+.gold-rule {
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.8); }
+}
+
+.live-dot {
+  animation: live-pulse 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-dot { animation: none; }
+}
