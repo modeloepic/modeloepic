@@ -1308,3 +1308,30 @@ html,body{scrollbar-width:thin;scrollbar-color:#c9a227 #16161a}
 .promo-msg-err{color:var(--text);background:rgba(224,49,49,.12);border:1px solid rgba(224,49,49,.4)}
 .promo-summary{margin-top:12px;font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:700;color:var(--accent-bright);text-align:center}
 .co-promo{margin-top:6px;text-align:center;font-size:12px;line-height:1.5;color:#e6c65c}
+
+/* Mis suscripciones (v21): la pestaña del suscriptor — cada suscripción
+   como tarjeta desplegable con su contenido de hoy (parlay + estudios);
+   las no activas van atenuadas y sin despliegue. */
+.mysub-list{display:flex;flex-direction:column;gap:12px;margin-top:20px}
+.mysub-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;text-align:left}
+.mysub-card-off{opacity:.62}
+.mysub-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;width:100%;background:none;border:none;padding:14px 16px;cursor:pointer;text-align:left;color:var(--text);font:inherit}
+.mysub-head:disabled{cursor:default}
+.mysub-sport{font-family:"Cinzel","Archivo",serif;font-size:16px;font-weight:700;color:var(--text)}
+.mysub-plan{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:700;letter-spacing:.4px;color:var(--dim);text-transform:uppercase}
+.mysub-pill{border-radius:999px;padding:2px 9px;font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:700;letter-spacing:.6px}
+.mysub-pill-on{background:linear-gradient(180deg,#e6c65c,#c9a227);color:#171205}
+.mysub-pill-off{background:var(--bg);color:var(--dim);border:1px solid var(--border)}
+.mysub-promo{border-radius:999px;padding:2px 9px;font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:700;letter-spacing:.6px;color:var(--accent-bright);border:1px solid rgba(201,162,39,.55);text-transform:uppercase}
+.mysub-meta{margin-left:auto;font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--dim);text-align:right}
+.mysub-days{color:var(--accent-bright);font-weight:700}
+.mysub-toggle{font-size:12px;font-weight:700;color:var(--accent-bright);white-space:nowrap}
+.mysub-inactive{padding:0 16px 13px;font-size:12.5px;line-height:1.5;color:var(--dim)}
+.mysub-panel{border-top:1px solid var(--border);padding:14px 16px 16px}
+.mysub-h{font-family:"Cinzel","Archivo",serif;font-size:14px;font-weight:700;color:var(--text);margin:16px 0 8px}
+.mysub-h:first-child{margin-top:0}
+.mysub-note{font-size:13px;line-height:1.55;color:var(--dim)}
+.mysub-chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 6px}
+.mysub-chip{border-radius:999px;padding:7px 15px;font-family:"Cinzel","Archivo",serif;font-size:13px;font-weight:700;letter-spacing:.3px;background:var(--bg);color:var(--dim);border:1px solid var(--border);cursor:pointer;transition:transform .1s}
+.mysub-chip:active{transform:scale(.95)}
+.mysub-chip-on{background:linear-gradient(180deg,#e6c65c,#c9a227);color:#171205;border-color:transparent}
