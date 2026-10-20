@@ -1202,3 +1202,10 @@ html,body{scrollbar-width:thin;scrollbar-color:#c9a227 #16161a}
 ::-webkit-scrollbar{width:10px;height:10px}
 ::-webkit-scrollbar-track{background:#16161a}
 ::-webkit-scrollbar-thumb{background:#c9a227;border-radius:5px;border:2px solid #16161a}
+
+/* Banda de marcadores (v14): rejilla de tarjetas por juego — 1 columna en
+   pantallas chicas y 2 columnas desde 1024px; la cabecera de cada liga
+   ocupa todo el ancho para que ninguna columna quede vacía. */
+.games-grid{display:grid;gap:1rem}
+.games-grid>.games-league-head{grid-column:1/-1}
+@media (min-width:1024px){.games-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
