@@ -1209,3 +1209,58 @@ html,body{scrollbar-width:thin;scrollbar-color:#c9a227 #16161a}
 .games-grid{display:grid;gap:1rem}
 .games-grid>.games-league-head{grid-column:1/-1}
 @media (min-width:1024px){.games-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* Tarjeta Estudio Epic completa (v16): réplica web de la tarjeta de
+   referencia — carbón/oro, serif Georgia; secciones LA NOTA, claves,
+   goles y datos, y la caja de la línea del modelo. */
+.estx-list{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:1.25rem}
+.estx{font-family:Georgia,'DejaVu Serif',serif;background:#0c0c0e;color:#f2ead8;border:1px solid #2a2a30;border-radius:10px;overflow:hidden;text-align:left}
+.estx-match{padding:16px 20px 4px;text-align:center}
+.estx-league{font-size:10px;letter-spacing:2px;color:#c9a227;text-transform:uppercase}
+.estx-title{font-size:19px;font-weight:bold;margin-top:6px;line-height:1.3}
+.estx-meta{font-size:11px;color:#9a958a;margin-top:4px}
+.estx-img{display:block;width:calc(100% - 40px);margin:10px 20px 0;border-radius:8px;border:1px solid #2a2a30}
+.estx-alert{margin:12px 20px 0;background:#2a1215;border:1px solid #8c2b32;border-radius:8px;padding:9px 12px;font-size:12px;color:#f0c4c4;line-height:1.55}
+.estx-alert b{color:#ff8f8f;letter-spacing:1px}
+.estx-sec{padding:14px 20px 2px}
+.estx-h{font-size:11px;letter-spacing:2px;color:#c9a227;text-transform:uppercase;border-bottom:1px solid #2a2a30;padding-bottom:6px;margin-bottom:9px;font-weight:normal}
+.estx-nota{font-size:13.5px;line-height:1.65;color:#e8e2d2}
+.estx-bar-row{display:flex;align-items:center;gap:8px;font-size:12px;margin:5px 0}
+.estx-bar-lab{flex:0 0 34%;text-align:right;color:#cfc9ba;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.estx-bar-track{flex:1;background:#1d1d21;border-radius:5px;height:16px;overflow:hidden}
+.estx-bar-fill{height:100%;background:linear-gradient(90deg,#c9a227,#e6c65c)}
+.estx-bar-fill.dim{background:#4a4a52}
+.estx-bar-val{flex:0 0 42px;font-weight:bold;color:#e6c65c}
+.estx-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+.estx-table td,.estx-table th{padding:5px 4px;border-bottom:1px solid #222228;text-align:center}
+.estx-table th{color:#9a958a;font-weight:normal;font-size:10px;letter-spacing:1px;text-transform:uppercase}
+.estx-table td:first-child,.estx-table th:first-child{text-align:left;color:#cfc9ba}
+.estx-gap{color:#e6c65c;font-weight:bold}
+.estx-gap small{display:block;font-size:10px;color:#9a958a;font-weight:normal}
+.estx-chips{display:flex;gap:6px;flex-wrap:wrap}
+.estx-chip{background:#1d1d21;border:1px solid #c9a227;color:#e6c65c;border-radius:20px;padding:4px 11px;font-size:11px}
+.estx-chip.gray{border-color:#3a3a42;color:#cfc9ba}
+.estx-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.estx-cell{background:#131316;border:1px solid #26262c;border-radius:8px;padding:9px 11px;font-size:12px}
+.estx-k{color:#9a958a;font-size:10px;letter-spacing:1px;text-transform:uppercase}
+.estx-v{font-size:13.5px;font-weight:bold;color:#f2ead8;margin-top:2px;line-height:1.4}
+.estx-pick{margin:14px 20px 16px;background:linear-gradient(135deg,#241d05,#16161a);border:1px solid #c9a227;border-radius:10px;padding:13px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.estx-pl{font-size:11px;letter-spacing:2px;color:#c9a227}
+.estx-pv{font-size:16.5px;font-weight:bold;color:#fff;margin-top:2px}
+.estx-pp{font-size:26px;font-weight:bold;color:#e6c65c}
+
+/* Tarjeta compacta de datos (v16): vista de suscriptor de la sección
+   «Datos estadísticos de cada juego» — sin la nota editorial. */
+.dtx-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;text-align:left}
+.dtx-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px}
+.dtx-title{font-family:"Cinzel","Archivo",serif;font-size:15px;font-weight:700;color:var(--text)}
+.dtx-hora{margin-left:auto;font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--dim)}
+.dtx-probs{margin-top:10px;display:flex;flex-direction:column;gap:4px}
+.dtx-prow{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:var(--dim)}
+.dtx-pval{font-family:"IBM Plex Mono",monospace;font-weight:700;color:var(--accent-bright)}
+.dtx-grid2{margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.dtx-cell{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:7px 9px}
+.dtx-datos{margin-top:10px;border-top:1px solid var(--border)}
+.dtx-drow{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid var(--border);font-size:12.5px}
+.dtx-drow dt{color:var(--dim)}
+.dtx-drow dd{font-weight:600;color:var(--text);text-align:right}
+.dtx-claves{margin-top:10px;padding-left:16px;list-style:disc;font-size:12.5px;line-height:1.55;color:var(--dim)}
