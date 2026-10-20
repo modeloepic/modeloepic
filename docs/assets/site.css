@@ -1264,3 +1264,13 @@ html,body{scrollbar-width:thin;scrollbar-color:#c9a227 #16161a}
 .dtx-drow dt{color:var(--dim)}
 .dtx-drow dd{font-weight:600;color:var(--text);text-align:right}
 .dtx-claves{margin-top:10px;padding-left:16px;list-style:disc;font-size:12.5px;line-height:1.55;color:var(--dim)}
+
+/* Líneas más fuertes (v19): top 3 del estudio — la 1ª línea usa la caja
+   destacada .estx-pick; la 2ª y la 3ª van como filas secundarias. */
+.estx-top{margin:14px 20px 16px}
+.estx-top .estx-pick{margin:0}
+.estx-toprow{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;background:#131316;border:1px solid #26262c;border-radius:10px;padding:10px 16px}
+.estx-toprow-lab{font-size:14px;font-weight:bold;color:#f2ead8}
+.estx-toprow-val{font-size:19px;font-weight:bold;color:#e6c65c}
+.dtx-top{margin-top:10px;display:flex;flex-direction:column;gap:4px}
+.dtx-toptitle{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent-bright);font-weight:700}
