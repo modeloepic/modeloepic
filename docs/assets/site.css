@@ -1335,3 +1335,26 @@ html,body{scrollbar-width:thin;scrollbar-color:#c9a227 #16161a}
 .mysub-chip{border-radius:999px;padding:7px 15px;font-family:"Cinzel","Archivo",serif;font-size:13px;font-weight:700;letter-spacing:.3px;background:var(--bg);color:var(--dim);border:1px solid var(--border);cursor:pointer;transition:transform .1s}
 .mysub-chip:active{transform:scale(.95)}
 .mysub-chip-on{background:linear-gradient(180deg,#e6c65c,#c9a227);color:#171205;border-color:transparent}
+
+/* Navegación por páginas (v24) */
+.nav-main{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.nav-link{display:inline-block;border-radius:999px;padding:7px 13px;font-size:13.5px;font-weight:600;color:var(--board-dim);background:var(--board-surface);border:1px solid var(--board-border);text-decoration:none;transition:transform .1s,color .15s,border-color .15s}
+.nav-link:hover{color:var(--board-text)}
+.nav-link:active{transform:scale(.95)}
+.nav-link-on{color:var(--accent-bright);border-color:rgba(201,162,39,.6)}
+.nav-link-gold{background:linear-gradient(180deg,#e6c65c,#c9a227);color:#171205;border-color:transparent;font-weight:700}
+.nav-link-gold:hover{color:#171205}
+.page-backbar{max-width:64rem;margin:0 auto;padding:20px 16px 0}
+.page-back{font-size:14px;font-weight:600;color:var(--accent-bright);text-decoration:none}
+.page-back:hover{text-decoration:underline}
+.menucards{display:grid;gap:12px}
+@media (min-width:640px){.menucards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (min-width:1024px){.menucards{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.menucard{display:block;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;text-decoration:none;transition:border-color .15s,transform .1s}
+.menucard:hover{border-color:rgba(201,162,39,.6)}
+.menucard:active{transform:scale(.98)}
+.menucard-title{display:flex;align-items:center;justify-content:space-between;gap:8px;font-family:"Cinzel","Archivo",serif;font-size:16px;font-weight:700;color:var(--text)}
+.menucard-body{display:block;margin-top:5px;font-size:13.5px;line-height:1.55;color:var(--dim)}
+.menucard-arrow{font-size:18px;font-weight:700;color:var(--accent-bright)}
+a.mysub-head{text-decoration:none}
+.mysub-panel-page{margin-top:14px;border:1px solid var(--border);border-radius:10px;background:var(--surface)}
