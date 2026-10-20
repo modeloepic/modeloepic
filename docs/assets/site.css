@@ -1274,3 +1274,21 @@ html,body{scrollbar-width:thin;scrollbar-color:#c9a227 #16161a}
 .estx-toprow-val{font-size:19px;font-weight:bold;color:#e6c65c}
 .dtx-top{margin-top:10px;display:flex;flex-direction:column;gap:4px}
 .dtx-toptitle{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent-bright);font-weight:700}
+
+/* Pago incrustado (v18): ventana emergente del checkout sin salir de la
+   página; el formulario lo monta el loader oficial de Whop dentro de
+   .co-embed (iframe de 480px de alto). */
+.co-overlay{position:fixed;inset:0;z-index:80;background:rgba(5,5,7,.8);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 12px}
+.co-panel{background:#101013;border:1px solid #2c2c33;border-radius:14px;width:100%;max-width:520px;box-shadow:0 24px 80px rgba(0,0,0,.65)}
+.co-head{display:flex;align-items:center;gap:10px;padding:13px 18px;border-bottom:1px solid #232329}
+.co-title{flex:1;font-family:"Cinzel","Archivo",serif;font-size:16px;font-weight:700;color:#f2ead8}
+.co-close{flex:none;width:34px;height:34px;border-radius:999px;border:1px solid #2c2c33;background:#17171b;color:#f2ead8;font-size:14px;cursor:pointer}
+.co-close:hover{border-color:#c9a227;color:#e6c65c}
+.co-body{padding:14px 14px 16px}
+.co-loading{padding:10px 4px 14px;text-align:center;font-family:"IBM Plex Mono",monospace;font-size:12px;color:#a79d86}
+.co-embed{min-height:480px}
+.co-embed iframe{border-radius:8px}
+.co-plan{margin-top:10px;text-align:center;font-family:"IBM Plex Mono",monospace;font-size:11px;color:#a79d86}
+.co-done{padding:26px 22px 28px;text-align:center}
+.co-done-body{font-size:14px;line-height:1.6;color:#f2ead8}
+.co-done-btn{margin-top:18px;border:none;border-radius:999px;padding:10px 28px;font-size:14px;font-weight:700;cursor:pointer}
