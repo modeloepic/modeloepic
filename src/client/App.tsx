@@ -1,45 +1,65 @@
-import { useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { SafeAreaTopScrim } from "./shims";
 import { api, type ApiResponse } from "./api";
+import { dict, fill, type Dict, type Lang } from "./i18n";
 const logoEpic = "./assets/logo-epic.webp";
+
+const WHOP_STORE = "https://whop.com/modeloepic";
+const WHOP_HOME = "https://whop.com";
 
 type Scores = ApiResponse<typeof api, "getScores">;
 type Game = Scores["groups"][number]["games"][number];
 type Sport = Scores["sport"];
 
-const SPORTS: { key: Sport; label: string; short: string }[] = [
-  { key: "futbol", label: "Fútbol", short: "Fútbol" },
-  { key: "ncaaf", label: "NCAAF", short: "NCAAF" },
-  { key: "nba", label: "NBA", short: "NBA" },
-  { key: "nhl", label: "NHL", short: "NHL" },
-  { key: "mlb", label: "MLB", short: "MLB" },
-];
+const SPORT_KEYS: Sport[] = ["futbol", "ncaaf", "nba", "nhl", "mlb"];
 
-const EMPTY_NOTES: Record<Sport, string> = {
-  futbol: "Hoy no hay partidos en las ligas que cubre el programa de fútbol.",
-  ncaaf: "Hoy no hay juegos de fútbol americano colegial FBS.",
-  nba: "Hoy no hay juegos de NBA en el calendario.",
-  nhl: "Hoy no hay juegos de NHL en el calendario.",
-  mlb: "Hoy no hay juegos de MLB en el calendario.",
-};
+// ---------- Idioma (ES por defecto, persistido en localStorage) ----------
+const LangCtx = createContext<{
+  lang: Lang;
+  setLang: (l: Lang) => void;
+  t: Dict;
+}>({ lang: "es", setLang: () => {}, t: dict.es });
+
+function useLang() {
+  return useContext(LangCtx);
+}
+
+function LangProvider({ children }: { children: ReactNode }) {
+  const [lang, setLang] = useState<Lang>(() => {
+    try {
+      return window.localStorage.getItem("epic-lang") === "en" ? "en" : "es";
+    } catch {
+      return "es";
+    }
+  });
+  useEffect(() => {
+    try {
+      window.localStorage.setItem("epic-lang", lang);
+    } catch {
+      // sin almacenamiento disponible: el idioma vale solo para esta visita
+    }
+    document.documentElement.lang = lang;
+    document.title = dict[lang].docTitle;
+  }, [lang]);
+  return (
+    <LangCtx.Provider value={{ lang, setLang, t: dict[lang] }}>
+      {children}
+    </LangCtx.Provider>
+  );
+}
 
 function formatTime(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
   return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-}
-
-function useSecondsAgo(iso: string | undefined): number {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(t);
-  }, []);
-  if (!iso) return 0;
-  const then = new Date(iso).getTime();
-  if (Number.isNaN(then)) return 0;
-  return Math.max(0, Math.round((now - then) / 1000));
 }
 
 function TeamRow({
@@ -85,6 +105,7 @@ function TeamRow({
 }
 
 function GameRow({ game }: { game: Game }) {
+  const { t } = useLang();
   const homeWin =
     game.state === "post" &&
     game.homeScore != null &&
@@ -101,11 +122,11 @@ function GameRow({ game }: { game: Game }) {
         {game.state === "in" ? (
           <span className="flex items-center gap-1.5 font-mono text-[11px] font-bold tracking-wide text-[var(--live)]">
             <span className="live-dot inline-block h-1.5 w-1.5 rounded-full bg-[var(--live)]" />
-            {game.detail || "EN VIVO"}
+            {game.detail || t.live}
           </span>
         ) : game.state === "post" ? (
           <span className="font-mono text-[11px] font-semibold tracking-wide text-[var(--board-dim)]">
-            {game.detail || "FINAL"}
+            {game.detail || t.final}
           </span>
         ) : (
           <span className="font-mono text-[11px] font-semibold text-[var(--board-dim)]">
@@ -134,6 +155,7 @@ function GameRow({ game }: { game: Game }) {
 }
 
 function Scoreboard() {
+  const { t } = useLang();
   const [sport, setSport] = useState<Sport>("futbol");
   const queryClient = useQueryClient();
   const scores = useQuery({
@@ -142,7 +164,6 @@ function Scoreboard() {
     refetchInterval: 60_000,
     refetchOnWindowFocus: true,
   });
-  const secondsAgo = useSecondsAgo(scores.data?.fetchedAt);
   const totalGames = useMemo(
     () =>
       scores.data?.groups.reduce((acc, g) => acc + g.games.length, 0) ?? 0,
@@ -158,68 +179,61 @@ function Scoreboard() {
   );
 
   return (
-    <section aria-label="Marcadores en vivo" className="bg-[var(--board)]">
+    <section aria-label={t.scoresAria} className="bg-[var(--board)]">
       <div className="mx-auto max-w-5xl px-4 pt-5 pb-6">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <h2 className="font-display text-xl font-extrabold tracking-tight text-[var(--board-text)]">
-            {scores.data?.anyLive ? "Marcadores en vivo" : "Juegos de hoy"}
+            {scores.data?.anyLive ? t.scoresTitleLive : t.scoresTitleToday}
           </h2>
           {scores.data?.anyLive ? (
             <span className="flex items-center gap-1.5 rounded-full bg-[var(--live)]/15 px-2.5 py-1 font-mono text-[11px] font-bold tracking-widest text-[var(--live)]">
               <span className="live-dot inline-block h-1.5 w-1.5 rounded-full bg-[var(--live)]" />
-              EN VIVO · {liveCount}
+              {fill(t.livePill, { n: liveCount })}
             </span>
           ) : (
             <span className="rounded-full bg-[var(--board-surface)] px-2.5 py-1 font-mono text-[11px] font-semibold tracking-widest text-[var(--board-dim)] ring-1 ring-[var(--board-border)]">
-              JUEGOS DE HOY
+              {t.todayPill}
             </span>
           )}
           <span className="ml-auto flex items-center gap-3">
-            {scores.data && (
-              <span className="font-mono text-[11px] text-[var(--board-dim)]">
-                {secondsAgo < 5
-                  ? "actualizado ahora"
-                  : `actualizado hace ${secondsAgo}s`}
-              </span>
-            )}
             <button
               type="button"
-              aria-label="Actualizar marcadores"
+              aria-label={t.refreshAria}
               onClick={() =>
                 queryClient.invalidateQueries({ queryKey: ["scores", sport] })
               }
               className="rounded-full bg-[var(--board-surface)] px-3 py-1.5 text-xs font-semibold text-[var(--board-text)] ring-1 ring-[var(--board-border)] transition hover:bg-[var(--board-border)]/40 active:scale-95"
             >
-              {scores.isFetching ? "Actualizando…" : "Actualizar"}
+              {scores.isFetching ? t.refreshing : t.refresh}
             </button>
           </span>
         </div>
 
         <div
           role="tablist"
-          aria-label="Deporte"
+          aria-label={t.sportAria}
           className="mt-4 flex flex-wrap gap-1.5 pb-1"
         >
-          {SPORTS.map((s) => (
+          {SPORT_KEYS.map((key, i) => (
             <button
-              key={s.key}
+              key={key}
               role="tab"
-              aria-selected={sport === s.key}
-              onClick={() => setSport(s.key)}
+              aria-selected={sport === key}
+              onClick={() => setSport(key)}
               className={`shrink-0 rounded-full px-4 py-2 font-display text-sm font-bold tracking-wide transition active:scale-95 ${
-                sport === s.key
+                sport === key
                   ? "gold-fill "
                   : "bg-[var(--board-surface)] text-[var(--board-dim)] ring-1 ring-[var(--board-border)] hover:text-[var(--board-text)]"
               }`}
             >
-              {s.label}
+              {t.sportsLabels[i]}
             </button>
           ))}
         </div>
 
         <div className="mt-4">
           {scores.isPending ? (
-            <div className="space-y-3" aria-label="Cargando marcadores">
+            <div className="space-y-3" aria-label={t.loadingAria}>
               {[0, 1, 2].map((i) => (
                 <div
                   key={i}
@@ -227,32 +241,29 @@ function Scoreboard() {
                 />
               ))}
               <p className="text-center font-mono text-xs text-[var(--board-dim)]">
-                Cargando los juegos de hoy…
+                {t.loadingText}
               </p>
             </div>
           ) : scores.isError ? (
             <div className="rounded-[var(--radius)] bg-[var(--board-surface)] px-4 py-8 text-center ring-1 ring-[var(--board-border)]">
               <p className="text-sm font-medium text-[var(--board-text)]">
-                No se pudieron cargar los marcadores.
+                {t.errorTitle}
               </p>
               <p className="mt-1 text-sm text-[var(--board-dim)]">
-                La fuente de datos no respondió. Inténtalo de nuevo.
+                {t.errorBody}
               </p>
               <button
                 type="button"
                 onClick={() => scores.refetch()}
                 className="mt-4 rounded-full gold-fill px-4 py-2 text-sm font-semibold  transition active:scale-95"
               >
-                Reintentar
+                {t.retry}
               </button>
             </div>
           ) : totalGames === 0 ? (
             <div className="rounded-[var(--radius)] bg-[var(--board-surface)] px-4 py-8 text-center ring-1 ring-[var(--board-border)]">
               <p className="text-sm text-[var(--board-dim)]">
-                {EMPTY_NOTES[sport]}
-              </p>
-              <p className="mt-1 font-mono text-[11px] text-[var(--board-dim)]">
-                La tabla se actualiza sola cada 60 segundos.
+                {t.emptyNotes[SPORT_KEYS.indexOf(sport)]}
               </p>
             </div>
           ) : (
@@ -277,7 +288,7 @@ function Scoreboard() {
         </div>
 
         <p className="mt-4 font-mono text-[11px] text-[var(--board-dim)]">
-          Fuente: ESPN · Se actualiza automáticamente cada 60 segundos.
+          {t.scoresSource}
         </p>
       </div>
     </section>
@@ -293,27 +304,12 @@ const MONTHLY_PRICE = 699;
 const PACKAGE_WEEKLY = 599;
 const PACKAGE_MONTHLY = 1499;
 
-const PROGRAMS: { name: string; desc: string }[] = [
-  {
-    name: "Fútbol Epic",
-    desc: "Parlay diario con 3 selecciones de las 9 ligas que cubre el modelo: Premier, La Liga, Serie A, Bundesliga, Ligue 1, Eredivisie, Süper Lig, Primeira y Champions.",
-  },
-  {
-    name: "NCAAF Epic",
-    desc: "Parlay de 3 selecciones en días de juego FBS: spread, totales, récord local/visita y bajas de QB ajustadas en el cálculo.",
-  },
-  {
-    name: "NBA Epic",
-    desc: "Parlay diario en días de juego con 3 selecciones. Últimos 10 en casa y fuera por separado, líderes por equipo y bajas de estrellas en la tarjeta.",
-  },
-  {
-    name: "NHL Epic",
-    desc: "Temporada 2026-27 ya en curso. Parlay diario en días de juego con 3 selecciones; la variable crítica: el portero titular de cada noche.",
-  },
-  {
-    name: "MLB Epic",
-    desc: "Cierre de postemporada 2026 y construcción completa rumbo a 2027. Parlay en días de juego con 3 selecciones; clave: el pitcher abridor.",
-  },
+const PROGRAM_NAMES = [
+  "Fútbol Epic",
+  "NCAAF Epic",
+  "NBA Epic",
+  "NHL Epic",
+  "MLB Epic",
 ];
 
 function fmt(n: number): string {
@@ -321,6 +317,7 @@ function fmt(n: number): string {
 }
 
 function Plans() {
+  const { t } = useLang();
   const [mode, setMode] = useState<BillingMode>("parlay");
   const [selectedSub, setSelectedSub] = useState<string>("Paquete Total Epic");
   const [selectedParlay, setSelectedParlay] = useState<string>("Fútbol Epic");
@@ -328,61 +325,64 @@ function Plans() {
   const isParlayMode = mode === "parlay";
   const subPrice = mode === "semanal" ? WEEKLY_PRICE : MONTHLY_PRICE;
   const packagePrice = mode === "semanal" ? PACKAGE_WEEKLY : PACKAGE_MONTHLY;
-  const periodLabel = mode === "semanal" ? "/semana" : "/mes";
+  const periodLabel = mode === "semanal" ? t.perWeek : t.perMonth;
+  const modeLabel = mode === "semanal" ? t.tabWeekly : t.tabMonthly;
   const selectedSubPrice =
     selectedSub === "Paquete Total Epic" ? packagePrice : subPrice;
 
+  const tabs: { key: BillingMode; label: string; hint: string }[] = [
+    { key: "parlay", label: t.tabParlay, hint: t.tabParlayHint },
+    { key: "semanal", label: t.tabWeekly, hint: t.tabWeeklyHint },
+    { key: "mensual", label: t.tabMonthly, hint: t.tabMonthlyHint },
+  ];
+
   return (
-    <section aria-label="Planes y precios" className="mx-auto max-w-5xl px-4 py-10">
+    <section aria-label={t.plansAria} className="mx-auto max-w-5xl px-4 py-10">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="font-display text-2xl font-extrabold tracking-tight text-[var(--text)]">
-            El parlay del día, o el parlay cada día
+            {t.plansTitle}
           </h2>
           <p className="mt-1 max-w-2xl text-sm leading-relaxed text-[var(--dim)]">
-            El producto Epic es un <strong className="text-[var(--text)]">parlay diario de 3 selecciones con cuota +500 o mayor</strong>,
-            uno por deporte en días de juego. Puedes comprarlo suelto o recibirlo
-            cada día con suscripción:{" "}
+            {t.plansIntroA}
             <strong className="text-[var(--text)]">
-              $90 el parlay del día (hoy $60 en promo de lanzamiento), $249/semana o $699/mes por deporte
+              {t.plansIntroStrong1}
             </strong>
-            . Nada de precios de saldo: esto es selección premium, no volumen.
+            {t.plansIntroB}
+            <strong className="text-[var(--text)]">
+              {t.plansIntroStrong2}
+            </strong>
+            {t.plansIntroC}
           </p>
         </div>
         <span className="gold-fill rounded-full px-3 py-1 font-mono text-[11px] font-bold tracking-widest">
-          ACCESO PREMIUM
+          {t.premiumBadge}
         </span>
       </div>
 
       {/* Selector de modalidad */}
       <div
         role="tablist"
-        aria-label="Forma de pago"
+        aria-label={t.billingAria}
         className="mt-6 grid grid-cols-3 gap-1 rounded-full bg-[var(--surface)] p-1 ring-1 ring-[var(--border)] sm:max-w-xl"
       >
-        {(
-          [
-            { key: "parlay", label: "Parlay del día", hint: "Desde $60 hoy" },
-            { key: "semanal", label: "Semanal", hint: "Desde $249 / semana" },
-            { key: "mensual", label: "Mensual", hint: "Desde $699 / mes" },
-          ] as { key: BillingMode; label: string; hint: string }[]
-        ).map((t) => (
+        {tabs.map((tab) => (
           <button
-            key={t.key}
+            key={tab.key}
             role="tab"
-            aria-selected={mode === t.key}
-            onClick={() => setMode(t.key)}
+            aria-selected={mode === tab.key}
+            onClick={() => setMode(tab.key)}
             className={`rounded-full px-2 py-2.5 text-center transition active:scale-[0.98] ${
-              mode === t.key
+              mode === tab.key
                 ? "bg-[var(--board)] text-[var(--board-text)] shadow-sm ring-1 ring-[var(--accent)]"
                 : "text-[var(--dim)] hover:text-[var(--text)]"
             }`}
           >
             <span className="block font-display text-sm font-bold leading-tight">
-              {t.label}
+              {tab.label}
             </span>
             <span className="block font-mono text-[10px] leading-tight text-[var(--board-dim)]">
-              {t.hint}
+              {tab.hint}
             </span>
           </button>
         ))}
@@ -390,29 +390,22 @@ function Plans() {
 
       {mode === "parlay" && (
         <p className="mt-3 max-w-2xl text-sm text-[var(--dim)]">
-          <strong className="text-[var(--text)]">Parlay del día suelto — $60 hoy (precio normal $90):</strong>{" "}
-          precio promocional de lanzamiento para nuevos clientes. Un parlay de
-          3 selecciones, cuota +500 o mayor, del deporte que elijas, entregado
-          completo antes del primer juego. Sin suscripción ni renovación.
+          <strong className="text-[var(--text)]">{t.modeParlayStrong}</strong>
+          {t.modeParlayBody}
         </p>
       )}
       {mode === "semanal" && (
         <p className="mt-3 max-w-2xl text-sm text-[var(--dim)]">
-          <strong className="text-[var(--text)]">Suscripción semanal — $249/semana por deporte:</strong>{" "}
-          recibes el parlay diario de ese deporte durante 7 días. El contraste
-          es claro: 7 parlays sueltos a $90 serían{" "}
-          <strong className="text-[var(--text)]">$630</strong>; con la semanal
-          pagas $249. Sin compromiso mensual: renueva solo si te convence.
-          Promo de lanzamiento: primeros 3 días de suscripción GRATIS.
+          <strong className="text-[var(--text)]">{t.modeWeeklyStrong}</strong>
+          {t.modeWeeklyBodyA}
+          <strong className="text-[var(--text)]">$630</strong>
+          {t.modeWeeklyBodyB}
         </p>
       )}
       {mode === "mensual" && (
         <p className="mt-3 max-w-2xl text-sm text-[var(--dim)]">
-          <strong className="text-[var(--text)]">Suscripción mensual — $699/mes por deporte:</strong>{" "}
-          el parlay diario de ese deporte durante todo el mes. Cuatro semanas
-          sueltas costarían $996; la mensual sale en $699 y no te pierdes
-          ningún parlay. Promo de lanzamiento: primeros 3 días de
-          suscripción GRATIS.
+          <strong className="text-[var(--text)]">{t.modeMonthlyStrong}</strong>
+          {t.modeMonthlyBody}
         </p>
       )}
 
@@ -420,22 +413,24 @@ function Plans() {
         {isParlayMode ? (
           <div>
             <div className="grid gap-3 sm:grid-cols-2">
-              {PROGRAMS.map((prog) => (
+              {PROGRAM_NAMES.map((name, i) => (
                 <article
-                  key={prog.name}
+                  key={name}
                   className="flex flex-col rounded-[var(--radius)] bg-[var(--surface)] p-4 ring-1 ring-[var(--border)]"
                 >
                   <div className="flex items-center gap-2">
                     <h3 className="font-display text-base font-bold text-[var(--text)]">
-                      {prog.name}
+                      {name}
                     </h3>
                     <span className="rounded-full gold-fill px-2 py-0.5 font-mono text-[10px] font-bold ">
-                      PROMO −$30
+                      {t.promoChip}
                     </span>
                   </div>
-                  <p className="mt-1 flex-1 text-sm text-[var(--dim)]">{prog.desc}</p>
+                  <p className="mt-1 flex-1 text-sm text-[var(--dim)]">
+                    {t.programDescs[i]}
+                  </p>
                   <p className="mt-2 font-mono text-[11px] text-[var(--dim)]">
-                    3 selecciones · cuota +500 o mayor · 1 parlay por día de juego
+                    {t.cardMetaLine}
                   </p>
                   <div className="mt-1.5 flex items-end justify-between gap-2">
                     <p className="font-mono leading-none">
@@ -445,32 +440,32 @@ function Plans() {
                       <span className="text-[22px] font-bold text-[var(--text)]">
                         ${PARLAY_PROMO}
                       </span>
-                      <span className="text-xs font-medium text-[var(--dim)]"> hoy</span>
+                      <span className="text-xs font-medium text-[var(--dim)]">
+                        {t.todaySuffix}
+                      </span>
                     </p>
                     <button
                       type="button"
-                      aria-label={`Elegir parlay del día de ${prog.name}`}
-                      aria-pressed={selectedParlay === prog.name}
-                      onClick={() => setSelectedParlay(prog.name)}
+                      aria-label={fill(t.ariaChooseParlay, { name })}
+                      aria-pressed={selectedParlay === name}
+                      onClick={() => setSelectedParlay(name)}
                       className={`rounded-full px-3.5 py-1.5 text-sm font-semibold transition active:scale-95 ${
-                        selectedParlay === prog.name
+                        selectedParlay === name
                           ? "bg-[var(--text)] text-[var(--bg)]"
                           : "gold-fill "
                       }`}
                     >
-                      {selectedParlay === prog.name ? "Elegido" : "Elegir"}
+                      {selectedParlay === name ? t.selected : t.select}
                     </button>
                   </div>
                 </article>
               ))}
               <article className="flex flex-col justify-center rounded-[var(--radius)] bg-[var(--board)] p-4 ring-1 ring-[var(--board-border)]">
                 <h3 className="font-display text-base font-bold text-[var(--board-text)]">
-                  ¿Lo quieres cada día?
+                  {t.crossTitle}
                 </h3>
                 <p className="mt-1 text-sm leading-relaxed text-[var(--board-dim)]">
-                  7 parlays sueltos serían $630. La suscripción semanal de un
-                  deporte cuesta $249 y la mensual $699 — el parlay diario,
-                  sin pensar en pagar cada día.
+                  {t.crossBody}
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <button
@@ -478,46 +473,50 @@ function Plans() {
                     onClick={() => setMode("semanal")}
                     className="rounded-full gold-fill px-3.5 py-1.5 text-sm font-semibold  transition active:scale-95"
                   >
-                    Ver semanal · $249
+                    {t.crossWeeklyBtn}
                   </button>
                   <button
                     type="button"
                     onClick={() => setMode("mensual")}
                     className="rounded-full bg-white/10 px-3.5 py-1.5 text-sm font-semibold text-[var(--board-text)] ring-1 ring-white/15 transition active:scale-95"
                   >
-                    Ver mensual · $699
+                    {t.crossMonthlyBtn}
                   </button>
                 </div>
               </article>
             </div>
             <p className="mt-3 text-xs leading-relaxed text-[var(--dim)]">
-              El parlay suelto se vende solo en días de juego de ese deporte y
-              nunca de juegos ya empezados. Si el parlay se cancela por
-              suspensión de un partido, se repone por otro sin costo.
+              {t.parlayFootnote}
             </p>
           </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
-            {PROGRAMS.map((prog) => {
+            {PROGRAM_NAMES.map((name, i) => {
               const contrast =
-                mode === "semanal"
-                  ? "7 parlays sueltos: $630 · ahorras $381"
-                  : "4 semanas sueltas: $996 · ahorras $297";
+                mode === "semanal" ? t.contrastWeekly : t.contrastMonthly;
               const alt =
                 mode === "semanal"
-                  ? `o $${fmt(MONTHLY_PRICE)}/mes`
-                  : `equivale a ~$${Math.round(MONTHLY_PRICE / 4.33)}/semana`;
+                  ? fill(t.altWeekly, { price: fmt(MONTHLY_PRICE) })
+                  : fill(t.altMonthly, {
+                      price: Math.round(MONTHLY_PRICE / 4.33),
+                    });
               return (
                 <article
-                  key={prog.name}
+                  key={name}
                   className="flex flex-col rounded-[var(--radius)] bg-[var(--surface)] p-4 ring-1 ring-[var(--border)]"
                 >
                   <h3 className="font-display text-base font-bold text-[var(--text)]">
-                    {prog.name}
+                    {name}
                   </h3>
-                  <p className="mt-1 flex-1 text-sm text-[var(--dim)]">{prog.desc}</p>
-                  <p className="mt-2 font-mono text-[11px] text-[var(--dim)]">{contrast}</p>
-                  <p className="mt-1 font-mono text-[11px] text-[var(--dim)]">{alt}</p>
+                  <p className="mt-1 flex-1 text-sm text-[var(--dim)]">
+                    {t.programDescs[i]}
+                  </p>
+                  <p className="mt-2 font-mono text-[11px] text-[var(--dim)]">
+                    {contrast}
+                  </p>
+                  <p className="mt-1 font-mono text-[11px] text-[var(--dim)]">
+                    {alt}
+                  </p>
                   <div className="mt-1.5 flex items-end justify-between gap-2">
                     <p className="font-mono text-[22px] font-bold leading-none text-[var(--text)]">
                       ${fmt(subPrice)}
@@ -527,16 +526,19 @@ function Plans() {
                     </p>
                     <button
                       type="button"
-                      aria-label={`Elegir plan ${prog.name} ${mode}`}
-                      aria-pressed={selectedSub === prog.name}
-                      onClick={() => setSelectedSub(prog.name)}
+                      aria-label={fill(t.ariaChoosePlan, {
+                        name,
+                        mode: modeLabel,
+                      })}
+                      aria-pressed={selectedSub === name}
+                      onClick={() => setSelectedSub(name)}
                       className={`rounded-full px-3.5 py-1.5 text-sm font-semibold transition active:scale-95 ${
-                        selectedSub === prog.name
+                        selectedSub === name
                           ? "bg-[var(--text)] text-[var(--bg)]"
                           : "gold-fill "
                       }`}
                     >
-                      {selectedSub === prog.name ? "Elegido" : "Elegir"}
+                      {selectedSub === name ? t.selected : t.select}
                     </button>
                   </div>
                 </article>
@@ -545,25 +547,24 @@ function Plans() {
             <article className="flex flex-col rounded-[var(--radius)] bg-[var(--board)] p-4 ring-1 ring-[var(--board-border)] sm:col-span-2">
               <div className="flex flex-wrap items-center gap-2">
                 <h3 className="font-display text-base font-bold text-[var(--board-text)]">
-                  Paquete Total Epic
+                  {t.packageName}
                 </h3>
                 <span className="rounded-full gold-fill px-2 py-0.5 font-mono text-[11px] font-bold ">
-                  LOS 5 DEPORTES
+                  {t.packageChip}
                 </span>
                 <span className="rounded-full bg-white/10 px-2 py-0.5 font-mono text-[11px] font-semibold text-[var(--board-text)] ring-1 ring-white/15">
-                  {mode === "semanal" ? "AHORRAS $646 / SEMANA" : "AHORRAS $1,996 / MES"}
+                  {mode === "semanal"
+                    ? t.packageSaveWeekly
+                    : t.packageSaveMonthly}
                 </span>
               </div>
               <p className="mt-1 flex-1 text-sm text-[var(--board-dim)]">
-                Fútbol, NCAAF, NBA, NHL y MLB en una sola suscripción: el
-                parlay diario de cada deporte en días de juego, con todas sus
-                tarjetas, sin tener que elegir deporte. Promo de lanzamiento:
-                primeros 3 días de suscripción GRATIS.
+                {t.packageBody}
               </p>
               <p className="mt-2 font-mono text-[11px] text-[var(--board-dim)]">
                 {mode === "semanal"
-                  ? "Por separado serían $1,245/semana"
-                  : "Por separado serían $3,495/mes"}
+                  ? t.packageSeparateWeekly
+                  : t.packageSeparateMonthly}
               </p>
               <div className="mt-1.5 flex items-end justify-between gap-2">
                 <p className="font-mono text-[22px] font-bold leading-none text-[var(--board-text)]">
@@ -574,7 +575,10 @@ function Plans() {
                 </p>
                 <button
                   type="button"
-                  aria-label={`Elegir plan Paquete Total Epic ${mode}`}
+                  aria-label={fill(t.ariaChoosePlan, {
+                    name: t.packageName,
+                    mode: modeLabel,
+                  })}
                   aria-pressed={selectedSub === "Paquete Total Epic"}
                   onClick={() => setSelectedSub("Paquete Total Epic")}
                   className={`rounded-full px-3.5 py-1.5 text-sm font-semibold transition active:scale-95 ${
@@ -583,7 +587,7 @@ function Plans() {
                       : "gold-fill "
                   }`}
                 >
-                  {selectedSub === "Paquete Total Epic" ? "Elegido" : "Elegir"}
+                  {selectedSub === "Paquete Total Epic" ? t.selected : t.select}
                 </button>
               </div>
             </article>
@@ -591,44 +595,46 @@ function Plans() {
         )}
 
         <aside
-          aria-label="Resumen de la orden"
+          aria-label={t.summaryAria}
           className="h-fit rounded-[var(--radius)] bg-[var(--surface)] p-4 ring-1 ring-[var(--border)] lg:sticky lg:top-4"
         >
           <h3 className="font-display text-sm font-bold tracking-wide text-[var(--text)] uppercase">
-            Tu orden
+            {t.summaryTitle}
           </h3>
           {isParlayMode ? (
             <dl className="mt-3 space-y-2 text-sm">
               <div className="flex justify-between gap-2">
-                <dt className="text-[var(--dim)]">Modalidad</dt>
-                <dd className="font-semibold text-[var(--text)]">Parlay del día</dd>
-              </div>
-              <div className="flex justify-between gap-2">
-                <dt className="text-[var(--dim)]">Producto</dt>
-                <dd className="text-right font-semibold text-[var(--text)]">
-                  Parlay del día — {selectedParlay}
+                <dt className="text-[var(--dim)]">{t.sumOption}</dt>
+                <dd className="font-semibold text-[var(--text)]">
+                  {t.tabParlay}
                 </dd>
               </div>
               <div className="flex justify-between gap-2">
-                <dt className="text-[var(--dim)]">Incluye</dt>
+                <dt className="text-[var(--dim)]">{t.sumProduct}</dt>
                 <dd className="text-right font-semibold text-[var(--text)]">
-                  3 selecciones · +500 o mayor
+                  {fill(t.sumProductValue, { name: selectedParlay })}
                 </dd>
               </div>
               <div className="flex justify-between gap-2">
-                <dt className="text-[var(--dim)]">Precio normal</dt>
+                <dt className="text-[var(--dim)]">{t.sumIncludes}</dt>
+                <dd className="text-right font-semibold text-[var(--text)]">
+                  {t.sumIncludesParlay}
+                </dd>
+              </div>
+              <div className="flex justify-between gap-2">
+                <dt className="text-[var(--dim)]">{t.sumRegularPrice}</dt>
                 <dd className="font-mono font-semibold text-[var(--dim)] line-through">
                   ${PARLAY_NORMAL}.00
                 </dd>
               </div>
               <div className="flex justify-between gap-2">
-                <dt className="text-[var(--dim)]">Promo lanzamiento</dt>
+                <dt className="text-[var(--dim)]">{t.sumPromo}</dt>
                 <dd className="font-mono font-semibold text-[var(--text)]">
                   −$30.00
                 </dd>
               </div>
               <div className="flex justify-between gap-2 border-t border-[var(--border)] pt-2">
-                <dt className="text-[var(--dim)]">Pago único</dt>
+                <dt className="text-[var(--dim)]">{t.sumOneTime}</dt>
                 <dd className="font-mono text-base font-bold text-[var(--text)]">
                   ${PARLAY_PROMO}.00
                 </dd>
@@ -637,25 +643,25 @@ function Plans() {
           ) : (
             <dl className="mt-3 space-y-2 text-sm">
               <div className="flex justify-between gap-2">
-                <dt className="text-[var(--dim)]">Modalidad</dt>
-                <dd className="font-semibold capitalize text-[var(--text)]">
-                  {mode}
+                <dt className="text-[var(--dim)]">{t.sumOption}</dt>
+                <dd className="font-semibold text-[var(--text)]">
+                  {modeLabel}
                 </dd>
               </div>
               <div className="flex justify-between gap-2">
-                <dt className="text-[var(--dim)]">Plan</dt>
+                <dt className="text-[var(--dim)]">{t.sumPlan}</dt>
                 <dd className="text-right font-semibold text-[var(--text)]">
                   {selectedSub}
                 </dd>
               </div>
               <div className="flex justify-between gap-2">
-                <dt className="text-[var(--dim)]">Incluye</dt>
+                <dt className="text-[var(--dim)]">{t.sumIncludes}</dt>
                 <dd className="text-right font-semibold text-[var(--text)]">
-                  Parlay diario · 3 selecciones +500
+                  {t.sumIncludesSub}
                 </dd>
               </div>
               <div className="flex justify-between gap-2">
-                <dt className="text-[var(--dim)]">Precio</dt>
+                <dt className="text-[var(--dim)]">{t.sumPrice}</dt>
                 <dd className="font-mono font-semibold text-[var(--text)]">
                   ${fmt(selectedSubPrice)}
                   {periodLabel}
@@ -663,7 +669,7 @@ function Plans() {
               </div>
               <div className="flex justify-between gap-2 border-t border-[var(--border)] pt-2">
                 <dt className="text-[var(--dim)]">
-                  {mode === "semanal" ? "Total semanal" : "Total mensual"}
+                  {mode === "semanal" ? t.sumTotalWeekly : t.sumTotalMonthly}
                 </dt>
                 <dd className="font-mono text-base font-bold text-[var(--text)]">
                   ${fmt(selectedSubPrice)}.00
@@ -671,74 +677,74 @@ function Plans() {
               </div>
             </dl>
           )}
-          <button
-            type="button"
+          <a
+            href={WHOP_STORE}
+            target="_blank"
+            rel="noreferrer"
             aria-label={
               isParlayMode
-                ? `Continuar al pago del parlay del día de ${selectedParlay}`
-                : `Continuar al pago de ${selectedSub} ${mode}`
+                ? fill(t.ariaCtaParlay, { name: selectedParlay })
+                : fill(t.ariaCtaPlan, { name: selectedSub, mode: modeLabel })
             }
-            className="mt-4 w-full rounded-full gold-fill py-2.5 text-sm font-bold  transition active:scale-[0.98]"
+            className="mt-4 block w-full rounded-full gold-fill py-2.5 text-center text-sm font-bold  transition active:scale-[0.98]"
           >
-            {isParlayMode ? "Comprar parlay · $60" : "Suscribirme"}
-          </button>
+            {isParlayMode ? t.ctaBuyParlay : t.ctaSubscribe}
+          </a>
           <p className="mt-3 rounded-lg bg-[var(--bg)] px-3 py-2 text-xs leading-relaxed text-[var(--dim)]">
-            El pago se procesará con Stripe cuando la cuenta esté conectada.
-            Acepta tarjetas de casi todo el mundo, Apple Pay y Google Pay.
-            {isParlayMode
-              ? " Pago único, sin renovación automática. Promo de lanzamiento para nuevos clientes; precio normal $90."
-              : " Sin permanencia: cancelas cuando quieras y no se te cobra el siguiente periodo. Promo de lanzamiento: primeros 3 días de suscripción GRATIS."}
+            {isParlayMode ? t.payNoteParlay : t.payNoteSub}
           </p>
           <p className="mt-2 text-center font-mono text-[11px] text-[var(--dim)]">
-            {isParlayMode
-              ? "¿Lo quieres cada día? Semanal $249 · Mensual $699."
-              : "¿Solo quieres el parlay de hoy? Cambia a «Parlay del día» arriba."}
+            {isParlayMode ? t.asideNoteParlay : t.asideNoteSub}
           </p>
         </aside>
       </div>
 
-      {/* Segunda oportunidad Epic — política del parlay suelto */}
+      {/* Cómo funciona — proceso de compra en Whop */}
+      <div className="mt-8">
+        <h3 className="font-display text-lg font-bold tracking-tight text-[var(--text)]">
+          {t.howTitle}
+        </h3>
+        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+          {t.howSteps.map((s) => (
+            <div
+              key={s.title}
+              className="rounded-[var(--radius)] bg-[var(--surface)] p-4 ring-1 ring-[var(--border)]"
+            >
+              <h4 className="font-display text-sm font-bold text-[var(--text)]">
+                {s.title}
+              </h4>
+              <p className="mt-1 text-sm leading-relaxed text-[var(--dim)]">
+                {s.body}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Segunda oportunidad Epic — garantía del parlay comprado */}
       <section
-        aria-label="Segunda oportunidad Epic"
+        aria-label={t.secondAria}
         className="mt-8 rounded-[var(--radius)] bg-[var(--board)] p-5 ring-1 ring-[var(--board-border)]"
       >
         <div className="flex flex-wrap items-center gap-2">
           <h3 className="gold-text font-display text-lg font-bold tracking-wide">
-            SEGUNDA OPORTUNIDAD EPIC
+            {t.secondTitle}
           </h3>
           <span className="rounded-full gold-fill px-2.5 py-0.5 font-mono text-[11px] font-bold ">
-            PARLAY SUELTO
+            {t.secondChip}
           </span>
         </div>
         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-[var(--board-text)]">
-          Si el parlay de hoy no se da, recibes uno totalmente GRATIS al día
-          siguiente, del mismo deporte. Así tienes otra oportunidad con
-          nosotros, sin volver a pagar.
+          {t.secondBody}
         </p>
         <p className="mt-3 max-w-3xl text-xs leading-relaxed text-[var(--board-dim)]">
-          Aplica una sola vez por parlay suelto comprado: el parlay gratis
-          corresponde al día siguiente con juegos de ese deporte. No es una
-          promesa de acierto: es una segunda oportunidad para intentarlo con
-          el análisis Epic.
+          {t.secondFine}
         </p>
       </section>
 
       {/* Qué incluye — refuerza el valor */}
       <div className="mt-8 grid gap-3 sm:grid-cols-3">
-        {[
-          {
-            title: "Un parlay diario por deporte",
-            body: "3 selecciones con cuota combinada +500 o mayor, solo en días de juego. No recibes los 10-18 juegos que analiza el modelo: solo el parlay que el equipo Epic selecciona y firmaría con su nombre.",
-          },
-          {
-            title: "Tarjeta completa por parlay",
-            body: "Cada selección del parlay trae probabilidad del modelo, comparación con el mercado, bajas ajustadas, últimos 10 casa/fuera y H2H cuando aplica.",
-          },
-          {
-            title: "Antes del juego, siempre",
-            body: "Todo parlay oficial se registra y se entrega antes del inicio. El registro público cuenta todos los oficiales, ganados y perdidos.",
-          },
-        ].map((f) => (
+        {t.features.map((f) => (
           <div
             key={f.title}
             className="rounded-[var(--radius)] bg-[var(--surface)] p-4 ring-1 ring-[var(--border)]"
@@ -746,7 +752,9 @@ function Plans() {
             <h3 className="font-display text-sm font-bold text-[var(--text)]">
               {f.title}
             </h3>
-            <p className="mt-1 text-sm leading-relaxed text-[var(--dim)]">{f.body}</p>
+            <p className="mt-1 text-sm leading-relaxed text-[var(--dim)]">
+              {f.body}
+            </p>
           </div>
         ))}
       </div>
@@ -754,31 +762,98 @@ function Plans() {
   );
 }
 
-export function App() {
+function StatsData() {
+  const { t } = useLang();
+  return (
+    <section
+      aria-label={t.statsAria}
+      className="mx-auto max-w-5xl px-4 py-10"
+    >
+      <p className="font-mono text-[11px] font-bold tracking-[0.3em] text-[var(--accent-bright)]">
+        {t.statsEyebrow}
+      </p>
+      <h2 className="mt-2 font-display text-2xl font-extrabold tracking-tight text-[var(--text)]">
+        {t.statsTitle}
+      </h2>
+      <p className="mt-1 max-w-2xl text-sm leading-relaxed text-[var(--dim)]">
+        {t.statsIntro}
+      </p>
+      <div className="mt-6 grid gap-3 sm:grid-cols-2">
+        {t.statsItems.map((item) => (
+          <div
+            key={item.title}
+            className="rounded-[var(--radius)] bg-[var(--surface)] p-4 ring-1 ring-[var(--border)]"
+          >
+            <h3 className="font-display text-sm font-bold text-[var(--text)]">
+              {item.title}
+            </h3>
+            <p className="mt-1 text-sm leading-relaxed text-[var(--dim)]">
+              {item.body}
+            </p>
+          </div>
+        ))}
+      </div>
+      <p className="mt-4 font-mono text-[11px] text-[var(--dim)]">
+        {t.statsNote}
+      </p>
+    </section>
+  );
+}
+
+function Page() {
+  const { lang, setLang, t } = useLang();
   return (
     <div className="min-h-screen bg-[var(--bg)]">
       <SafeAreaTopScrim backgroundColor="var(--board)" />
 
       <header className="bg-[var(--board)]">
-        <div className="mx-auto max-w-5xl px-4 pt-8 pb-7">
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-2 px-4 pt-5">
+          <a
+            href={WHOP_HOME}
+            target="_blank"
+            rel="noreferrer"
+            className="ml-auto rounded-full bg-[var(--board-surface)] px-3.5 py-1.5 text-sm font-semibold text-[var(--board-text)] ring-1 ring-[var(--board-border)] transition hover:bg-[var(--board-border)]/40 active:scale-95"
+          >
+            {t.subscriberLogin}
+          </a>
+          <div
+            role="group"
+            aria-label={t.langAria}
+            className="flex items-center gap-1 rounded-full bg-[var(--board-surface)] p-1 ring-1 ring-[var(--board-border)]"
+          >
+            {(["es", "en"] as Lang[]).map((l) => (
+              <button
+                key={l}
+                type="button"
+                aria-pressed={lang === l}
+                onClick={() => setLang(l)}
+                className={`rounded-full px-2.5 py-1 font-mono text-[11px] font-bold tracking-widest transition active:scale-95 ${
+                  lang === l
+                    ? "gold-fill "
+                    : "text-[var(--board-dim)] hover:text-[var(--board-text)]"
+                }`}
+              >
+                {l.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="mx-auto max-w-5xl px-4 pt-5 pb-7">
           <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:gap-8">
             <img
               src={logoEpic}
-              alt="Logo oficial de Epic: la palabra EPIC en letras doradas metálicas rodeada de balones de los cinco deportes en oro y bronce"
+              alt={t.logoAlt}
               className="h-44 w-44 shrink-0 rounded-full shadow-[0_0_60px_rgba(201,162,39,0.22)] ring-1 ring-[var(--accent)]/50 sm:h-52 sm:w-52"
             />
             <div className="text-center sm:text-left">
               <p className="font-mono text-[11px] font-bold tracking-[0.3em] text-[var(--accent-bright)]">
-                EPIC · PICKS CON ESTADÍSTICA REAL
+                {t.heroEyebrow}
               </p>
               <h1 className="mt-3 font-display text-3xl font-bold tracking-wide text-[var(--board-text)] sm:text-4xl">
-                Los juegos del día, actualizados solos.
+                {t.heroTitle}
               </h1>
               <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-[var(--board-dim)] sm:mx-0">
-                Fútbol, fútbol americano colegial, NBA, NHL y MLB: los
-                marcadores de hoy se actualizan solos, y el parlay oficial de
-                cada día — 3 selecciones, cuota +500 o mayor — lo elige el
-                equipo Epic. No se publica todo lo que analiza el modelo.
+                {t.heroBody}
               </p>
             </div>
           </div>
@@ -789,33 +864,32 @@ export function App() {
       <Scoreboard />
 
       <section
-        aria-label="Registro de picks oficiales"
+        aria-label={t.recordAria}
         className="mx-auto max-w-5xl px-4 py-10"
       >
         <div className="grid gap-6 md:grid-cols-[1fr_1.2fr] md:items-center">
           <div>
             <p className="gold-text font-display text-5xl font-bold tracking-wide">
-              Alto porcentaje
+              {t.recordBig}
             </p>
             <p className="mt-1 font-mono text-xs tracking-widest text-[var(--dim)] uppercase">
-              Registro de picks oficiales
+              {t.recordCaption}
             </p>
           </div>
           <div className="space-y-3 text-sm leading-relaxed text-[var(--dim)]">
             <p>
-              De todo lo que el modelo analiza cada jornada, el equipo Epic
-              selecciona personalmente los <strong className="text-[var(--text)]">parlays
-              oficiales</strong> — 3 selecciones, cuota +500 o mayor —: solo esos
-              reciben los suscriptores y solo esos cuentan en el registro
-              público de picks oficiales.
+              {t.recordP1a}
+              <strong className="text-[var(--text)]">
+                {t.recordP1strong}
+              </strong>
+              {t.recordP1b}
             </p>
             <p>
-              Cada parlay oficial se registra con fecha y hora,{" "}
-              <strong className="text-[var(--text)]">antes de que empiece el juego</strong>,
-              y se cuentan todos — los que aciertan y los que fallan. El
-              porcentaje exacto se publicará aquí conforme el registro se
-              acumule; mientras tanto, no mostramos una cifra que todavía no
-              existe.
+              {t.recordP2a}
+              <strong className="text-[var(--text)]">
+                {t.recordP2strong}
+              </strong>
+              {t.recordP2b}
             </p>
           </div>
         </div>
@@ -825,23 +899,28 @@ export function App() {
         <Plans />
       </div>
 
+      <div className="border-t gold-rule">
+        <StatsData />
+      </div>
+
       <footer className="border-t gold-rule">
         <div className="mx-auto max-w-5xl space-y-2 px-4 py-8 text-xs leading-relaxed text-[var(--dim)]">
           <p>
-            <strong className="text-[var(--text)]">Solo para mayores de 18 años.</strong>{" "}
-            Este servicio ofrece análisis estadístico y pronósticos deportivos
-            con fines informativos y de entretenimiento. Ningún resultado
-            pasado garantiza resultados futuros y no prometemos ganancias.
+            <strong className="text-[var(--text)]">{t.footerAge}</strong>
+            {t.footerAbout}
           </p>
-          <p>
-            Juega con responsabilidad: apuesta solo lo que puedas permitirte
-            perder. Si el juego deja de ser diversión, busca ayuda en tu país.
-          </p>
-          <p className="font-mono text-[11px]">
-            Marcadores: ESPN. Los horarios se muestran en tu zona horaria.
-          </p>
+          <p>{t.footerResponsible}</p>
+          <p className="font-mono text-[11px]">{t.footerSource}</p>
         </div>
       </footer>
     </div>
+  );
+}
+
+export function App() {
+  return (
+    <LangProvider>
+      <Page />
+    </LangProvider>
   );
 }
