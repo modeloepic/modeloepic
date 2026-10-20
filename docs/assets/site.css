@@ -1358,3 +1358,7 @@ html,body{scrollbar-width:thin;scrollbar-color:#c9a227 #16161a}
 .menucard-arrow{font-size:18px;font-weight:700;color:var(--accent-bright)}
 a.mysub-head{text-decoration:none}
 .mysub-panel-page{margin-top:14px;border:1px solid var(--border);border-radius:10px;background:var(--surface)}
+/* v26 — Datos y estadísticas juego por juego: la pareja estudio → datos
+   de cada juego se agrupa; la etiqueta separa la tarjeta de datos. */
+.gamepair{display:flex;flex-direction:column;gap:10px}
+.gamepair-datos-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent-bright);font-weight:700;margin:2px 0 6px}
