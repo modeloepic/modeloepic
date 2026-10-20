@@ -1192,3 +1192,13 @@
     }
   }
 }
+
+/* Barras de desplazamiento visibles (sitio independiente) */
+html,body{scrollbar-width:thin;scrollbar-color:#c9a227 #16161a}
+[data-generated-space-root]{scrollbar-width:thin;scrollbar-color:#c9a227 #16161a}
+[data-generated-space-root]::-webkit-scrollbar{display:block;width:10px;height:10px}
+[data-generated-space-root]::-webkit-scrollbar-track{background:#16161a}
+[data-generated-space-root]::-webkit-scrollbar-thumb{background:#c9a227;border-radius:5px;border:2px solid #16161a}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:#16161a}
+::-webkit-scrollbar-thumb{background:#c9a227;border-radius:5px;border:2px solid #16161a}
