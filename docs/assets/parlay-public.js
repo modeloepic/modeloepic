@@ -14,7 +14,12 @@
  * en vivo. Orden de búsqueda del ancla:
  *   1. section[aria-label] de marcadores (atributo estable).
  *   2. La <section> que contenga un encabezado con ese texto.
- *   3. section#planes (ancla de la v30, para vistas sin marcadores).
+ *   (La v36 — orden de Pedro, 2026-10-21 — ELIMINÓ el ancla de reserva
+ *   section#planes de la v30: con ella, esta sección «Parlay Epic ·
+ *   GRATIS» se insertaba también en la página de Planes. Desde la v36
+ *   la sección vive SOLO en Inicio: sin sección de marcadores no hay
+ *   inserción, y update() además se corta en cualquier ruta que no sea
+ *   la principal.)
  *
  * Sin parlay publicado hoy NO se inserta nada: ni caja vacía ni texto.
  * La sección solo existe cuando hay fila de hoy.
@@ -201,7 +206,18 @@
   }
 
   function findAnchor() {
-    return findScoresSection() || document.querySelector("section#planes");
+    /* v36: SOLO la sección de marcadores (existe únicamente en Inicio).
+       Sin el fallback a section#planes, la tarjeta pública ya no puede
+       aparecer en la página de Planes. */
+    return findScoresSection();
+  }
+
+  /* v36: la sección pública del Parlay Epic vive SOLO en Inicio. En
+     cualquier otra ruta (#/planes, #/estudios, #/entrar, #/cuenta) no
+     se inserta y, si venía insertada de Inicio, se retira. */
+  function onHomeRoute() {
+    var h = window.location.hash || "";
+    return h === "" || h === "#" || h === "#/";
   }
 
   function contentKey() {
@@ -235,6 +251,10 @@
      con error de red) la sección NO existe en el DOM. */
   function update() {
     var sec = document.getElementById("parlay-publico");
+    if (!onHomeRoute()) {
+      if (sec && sec.parentNode) sec.parentNode.removeChild(sec);
+      return;
+    }
     var has = !!(state.rows && state.rows.length);
     if (!has) {
       if (sec && sec.parentNode) sec.parentNode.removeChild(sec);
