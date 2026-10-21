@@ -1400,3 +1400,19 @@ a.mysub-head{text-decoration:none}
 .pp-prob-lab{display:block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--board-dim)}
 .pp-note{border-top:1px solid var(--board-border);padding:.8rem 1.25rem;font-size:.95rem;line-height:1.55;color:var(--board-dim);margin:0}
 @media (max-width:640px){.pp-section{padding:1.5rem 1rem}.pp-card-head{padding:.8rem 1rem}.pp-row{padding:.75rem 1rem}.pp-note{padding:.7rem 1rem}}
+
+/* v36 — Nota elegante de renovación automática en Planes: la pinta
+   assets/renewal-note.js dentro de section#planes, entre el encabezado
+   y el selector de forma de pago. Pieza tipo placa, en el sistema del
+   sitio: fondo carbón de las tarjetas oscuras (var(--board), como la
+   tarjeta del Parlay Epic), borde fino dorado, medallón con ícono de
+   renovación en trazo dorado, rótulo Cinzel en versalitas con tracking
+   y cuerpo en tono suave de la paleta board. Sin colores ni fuentes
+   nuevas; el ancho lo da el propio contenedor de la sección. */
+.rn-note{display:flex;align-items:center;gap:1rem;margin-top:1.5rem;padding:1rem 1.25rem;background:var(--board);border:1px solid var(--accent);border-radius:var(--radius);box-shadow:0 0 24px rgba(201,162,39,.08)}
+.rn-icon{flex:none;display:flex;align-items:center;justify-content:center;width:2.75rem;height:2.75rem;border-radius:999px;background:var(--board-surface);border:1px solid var(--board-border);color:var(--accent-bright)}
+.rn-icon svg{width:1.375rem;height:1.375rem;display:block}
+.rn-text{min-width:0}
+.rn-label{font-family:"Cinzel","Archivo",serif;font-size:.8125rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--accent-bright);margin:0}
+.rn-body{margin:.3rem 0 0;font-size:.9375rem;line-height:1.55;color:var(--board-dim)}
+@media (max-width:640px){.rn-note{gap:.8rem;padding:.9rem 1rem;margin-top:1.25rem}.rn-icon{width:2.375rem;height:2.375rem}.rn-icon svg{width:1.1875rem;height:1.1875rem}.rn-label{font-size:.75rem}.rn-body{font-size:.9rem}}
