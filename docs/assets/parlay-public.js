@@ -95,7 +95,7 @@
   /* Normaliza el body igual que a1() en el bundle, aceptando además
      cuota_combinada / combined_odds y la cuota por selección. */
   function normalize(body) {
-    var out = { picks: [], total: null, nota: null, garantia: null };
+    var out = { picks: [], total: null, nota: null };
     if (!body || typeof body !== "object") return out;
     var arr = body.selecciones || body.selections || body.legs || body.picks;
     if (Array.isArray(arr)) {
@@ -133,7 +133,6 @@
     }
     out.total = t;
     out.nota = str(body.nota, body.note);
-    out.garantia = str(body.garantia, body.guarantee);
     return out;
   }
 
@@ -179,7 +178,6 @@
       card.appendChild(ul);
     }
     if (n.nota) card.appendChild(el("p", "pp-note", n.nota));
-    if (n.garantia) card.appendChild(el("p", "pp-note", n.garantia));
     return card;
   }
 
