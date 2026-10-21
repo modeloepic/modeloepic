@@ -1,14 +1,27 @@
-/* Epic v31 — Parlay Epic: sección pública de la tarjeta del día.
+/* Epic v32 — Parlay Epic: tarjeta pública del día, EL GANCHO de la página.
  *
  * Lee por REST (clave anónima, la misma del bundle) las filas kind='parlay'
  * de hoy de la tabla premium_content y las pinta en una sección pública
- * (#parlay-publico) justo ANTES de la sección de planes (#planes), sin
- * cuenta ni suscripción. La lectura pública de kind='parlay' la permite
- * la política RLS de la base; los estudios (kind='estudio') siguen
- * protegidos por suscripción.
+ * (#parlay-publico) colocada JUSTO ARRIBA de la sección de marcadores
+ * («Juegos de hoy»), sin cuenta ni suscripción. La lectura pública de
+ * kind='parlay' la permite la política RLS de la base; los estudios
+ * (kind='estudio') siguen protegidos por suscripción.
  *
- * Es aditivo a propósito: no toca el bundle compilado. Si React re-renderiza
- * y se lleva la sección, el MutationObserver la vuelve a insertar.
+ * Ancla (verificada en el bundle, componente de marcadores): la sección
+ * de marcadores es un <section aria-label="Marcadores en vivo" |
+ * "Live scores"> (sin id) cuyo h2 alterna «Juegos de hoy» /
+ * «Today's games» y «Marcadores en vivo» / «Live scores» si hay juegos
+ * en vivo. Orden de búsqueda del ancla:
+ *   1. section[aria-label] de marcadores (atributo estable).
+ *   2. La <section> que contenga un encabezado con ese texto.
+ *   3. section#planes (ancla de la v30, para vistas sin marcadores).
+ *
+ * Sin parlay publicado hoy NO se inserta nada: ni caja vacía ni texto.
+ * La sección solo existe cuando hay fila de hoy.
+ *
+ * Es aditivo a propósito: no toca el bundle compilado. Si React
+ * re-renderiza y se lleva la sección o la mueve, el MutationObserver la
+ * vuelve a colocar en su posición.
  */
 (function () {
   "use strict";
@@ -21,24 +34,26 @@
     es: {
       title: "Parlay Epic",
       badge: "GRATIS",
-      sub: "",
       oddsLabel: "Cuota total",
       probLabel: "Prob. del modelo",
-      loading: "Cargando el Parlay Epic de hoy…",
-      notYet:
-        "Aún no se publica el de hoy.",
     },
     en: {
       title: "Epic Parlay",
       badge: "FREE",
-      sub: "",
       oddsLabel: "Total odds",
       probLabel: "Model prob.",
-      loading: "Loading today's Epic Parlay…",
-      notYet:
-        "Today's is not published yet.",
     },
   };
+
+  /* Textos (aria-label y títulos) de la sección de marcadores en el
+     bundle: scoresAria / scoresTitleToday / scoresTitleLive. */
+  var SCORES_ARIA = ["Marcadores en vivo", "Live scores"];
+  var SCORES_TITLES = [
+    "Juegos de hoy",
+    "Today's games",
+    "Marcadores en vivo",
+    "Live scores",
+  ];
 
   function lang() {
     try {
@@ -168,31 +183,81 @@
     return card;
   }
 
-  var state = { rows: null, error: false, fetchedFor: "" };
+  var state = { rows: null, fetchedFor: "" };
 
-  function renderSection() {
-    var sec = document.getElementById("parlay-publico");
-    if (!sec) return;
+  /* --- Ancla: la sección de marcadores ("Juegos de hoy") ------------- */
+  function findScoresSection() {
+    var byAria = document.querySelector(
+      'section[aria-label="Marcadores en vivo"], section[aria-label="Live scores"]',
+    );
+    if (byAria) return byAria;
+    var heads = document.querySelectorAll("section h1, section h2, section h3");
+    for (var i = 0; i < heads.length; i++) {
+      var txt = (heads[i].textContent || "").trim();
+      if (SCORES_TITLES.indexOf(txt) !== -1) {
+        var sec = heads[i].closest ? heads[i].closest("section") : null;
+        if (sec) return sec;
+      }
+    }
+    return null;
+  }
+
+  function findAnchor() {
+    return findScoresSection() || document.querySelector("section#planes");
+  }
+
+  function contentKey() {
+    if (!state.rows) return "";
+    return (
+      lang() +
+      "|" +
+      state.rows
+        .map(function (r) {
+          return r.id || r.title || "";
+        })
+        .join(",")
+    );
+  }
+
+  function renderSection(sec) {
     var L = TXT[lang()];
     sec.setAttribute("aria-label", L.title);
     sec.innerHTML = "";
     var head = el("div", "pp-head");
     head.appendChild(el("h2", "pp-title", L.title));
-    var badge = el("span", "pp-badge gold-fill", L.badge);
-    head.appendChild(badge);
+    head.appendChild(el("span", "pp-badge gold-fill", L.badge));
     sec.appendChild(head);
-    sec.appendChild(el("p", "pp-sub", L.sub));
-    if (state.rows === null) {
-      sec.appendChild(el("p", "pp-empty", L.loading));
-      return;
-    }
-    if (!state.rows.length) {
-      sec.appendChild(el("p", "pp-empty", L.notYet));
-      return;
-    }
     state.rows.forEach(function (row) {
       sec.appendChild(renderCard(row, L));
     });
+    sec.setAttribute("data-pp-key", contentKey());
+  }
+
+  /* Inserta/mueve la sección justo antes del ancla. Sin filas de hoy (o
+     con error de red) la sección NO existe en el DOM. */
+  function update() {
+    var sec = document.getElementById("parlay-publico");
+    var has = !!(state.rows && state.rows.length);
+    if (!has) {
+      if (sec && sec.parentNode) sec.parentNode.removeChild(sec);
+      return;
+    }
+    var anchor = findAnchor();
+    if (!anchor || !anchor.parentNode) {
+      /* La vista aún no renderiza marcadores ni planes: el observador
+         (y el chequeo periódico) reintentan cuando aparezcan. */
+      if (sec && sec.parentNode) sec.parentNode.removeChild(sec);
+      return;
+    }
+    if (!sec) {
+      sec = document.createElement("section");
+      sec.id = "parlay-publico";
+      sec.className = "pp-section";
+    }
+    if (sec.nextElementSibling !== anchor || sec.parentNode !== anchor.parentNode) {
+      anchor.parentNode.insertBefore(sec, anchor);
+    }
+    if (sec.getAttribute("data-pp-key") !== contentKey()) renderSection(sec);
   }
 
   function fetchRows() {
@@ -213,28 +278,12 @@
       })
       .then(function (rows) {
         state.rows = Array.isArray(rows) ? rows : [];
-        renderSection();
+        update();
       })
       .catch(function () {
         state.rows = [];
-        renderSection();
+        update();
       });
-  }
-
-  function ensureInserted() {
-    var planes = document.querySelector("section#planes");
-    if (!planes) return;
-    var sec = document.getElementById("parlay-publico");
-    if (!sec) {
-      sec = document.createElement("section");
-      sec.id = "parlay-publico";
-      sec.className = "pp-section";
-      planes.parentNode.insertBefore(sec, planes);
-      renderSection();
-      fetchRows();
-    } else if (sec.nextElementSibling !== planes) {
-      planes.parentNode.insertBefore(sec, planes);
-    }
   }
 
   var pending = false;
@@ -243,27 +292,23 @@
     pending = true;
     setTimeout(function () {
       pending = false;
-      ensureInserted();
+      update();
     }, 120);
   }
 
   function start() {
-    ensureInserted();
+    fetchRows();
+    update();
     var mo = new MutationObserver(schedule);
-    mo.observe(document.documentElement, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ["lang"],
-    });
+    mo.observe(document.documentElement, { childList: true, subtree: true });
     var lastLang = lang();
     setInterval(function () {
       if (lang() !== lastLang) {
         lastLang = lang();
         state.fetchedFor = "";
-        renderSection();
         fetchRows();
       }
+      update();
     }, 800);
     window.addEventListener("hashchange", schedule);
   }

@@ -1370,31 +1370,33 @@ a.mysub-head{text-decoration:none}
    divisoria tenue en dorado al centro, en armonía con el carbón/oro. */
 .estx-list{gap:1.375rem}
 .estx-list>.gamepair+.gamepair{border-top:1px solid rgba(201,162,39,.18);padding-top:1.375rem}
-/* v30 — Parlay Epic público y gratis. Nueva sección pública
-   (#parlay-publico, la pinta assets/parlay-public.js) que muestra el
-   parlay del día sin cuenta ni suscripción, justo antes de la sección
-   de planes. En Planes desaparece la pestaña de compra del parlay:
-   lo que se vende es el acceso a los datos y estadísticas. */
-.pp-section{max-width:64rem;margin:0 auto;padding:2.5rem 1rem 0}
-.pp-head{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem}
-.pp-title{font-family:"Cinzel","Archivo",serif;font-size:1.5rem;font-weight:800;letter-spacing:-.01em;color:var(--text);margin:0}
-.pp-badge{border-radius:999px;padding:.3rem .7rem;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;font-weight:700;letter-spacing:.12em}
-.pp-sub{margin-top:.35rem;font-size:.9rem;line-height:1.55;color:var(--dim);max-width:42rem}
-.pp-card{margin-top:1rem;background:var(--board);border:1px solid var(--accent);border-radius:var(--radius);overflow:hidden}
-.pp-card-head{display:flex;flex-wrap:wrap;align-items:center;gap:.75rem;background:var(--board-surface);border-bottom:1px solid var(--board-border);padding:.6rem 1rem}
-.pp-card-title{font-family:"Cinzel","Archivo",serif;font-size:1rem;font-weight:700;letter-spacing:.02em;color:var(--board-text);margin:0}
+/* v32 — Parlay Epic gancho sobre Juegos de hoy: bloque protagonista
+   (lo pinta assets/parlay-public.js) integrado al sistema del sitio:
+   mismo contenedor max-w-5xl (64rem) y px-4 que hero/marcadores/planes,
+   paleta carbón/oro y tipografías Cinzel/mono del tema, sin fuentes ni
+   colores nuevos. Jerarquía: título 28–36px (empata el techo del h1 del
+   hero, no lo supera), cuota combinada 40–48px (techo = text-5xl, el
+   escalón display mayor del tema) y resplandor dorado apenas perceptible
+   con el dorado exacto del sitio (#c9a227, el mismo del logo). */
+.pp-section{max-width:64rem;margin:0 auto;padding:2rem 1rem}
+.pp-head{display:flex;flex-wrap:wrap;align-items:center;gap:.75rem}
+.pp-title{font-family:"Cinzel","Archivo",serif;font-size:clamp(1.75rem,4.5vw,2.25rem);font-weight:800;letter-spacing:-.01em;color:var(--text);margin:0}
+.pp-badge{border-radius:999px;padding:.45rem .95rem;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;font-weight:700;letter-spacing:.12em}
+.pp-card{margin-top:1.25rem;background:var(--board);border:1px solid var(--accent);border-radius:var(--radius);overflow:hidden;box-shadow:0 0 24px rgba(201,162,39,.10)}
+.pp-card-head{display:flex;flex-wrap:wrap;align-items:center;gap:.75rem;background:var(--board-surface);border-bottom:1px solid var(--board-border);padding:.9rem 1.25rem}
+.pp-card-title{font-family:"Cinzel","Archivo",serif;font-size:clamp(1.125rem,2.6vw,1.5rem);font-weight:700;letter-spacing:.02em;color:var(--board-text);margin:0}
 .pp-odds{margin:0 0 0 auto;text-align:right}
 .pp-odds-lab{display:block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--board-dim)}
-.pp-odds-val{font-family:"Cinzel","Archivo",serif;font-size:1.5rem;font-weight:700}
+.pp-odds-val{font-family:"Cinzel","Archivo",serif;font-size:clamp(2.5rem,6vw,3rem);font-weight:800}
 .pp-list{list-style:none;margin:0;padding:0}
-.pp-row{display:flex;flex-wrap:wrap;align-items:center;gap:.35rem .75rem;padding:.6rem 1rem;border-top:1px solid var(--board-border)}
+.pp-row{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .9rem;padding:.85rem 1.25rem;border-top:1px solid var(--board-border)}
 .pp-sport{border-radius:4px;background:var(--board-surface);padding:.15rem .5rem;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-bright);border:1px solid var(--board-border)}
 .pp-pick{flex:1;min-width:0}
-.pp-game{display:block;font-size:.9rem;font-weight:600;color:var(--board-text)}
-.pp-line{display:block;font-size:.9rem;color:var(--board-dim)}
-.pp-cuota{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.85rem;font-weight:700;color:var(--accent-bright)}
+.pp-game{display:block;font-size:1.0625rem;font-weight:600;line-height:1.45;color:var(--board-text)}
+.pp-line{display:block;font-size:1.0625rem;line-height:1.45;color:var(--board-dim)}
+.pp-cuota{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.95rem;font-weight:700;color:var(--accent-bright)}
 .pp-prob{text-align:right}
-.pp-prob-val{display:block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:1rem;font-weight:700;color:var(--accent-bright)}
+.pp-prob-val{display:block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:1.125rem;font-weight:700;color:var(--accent-bright)}
 .pp-prob-lab{display:block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--board-dim)}
-.pp-note{border-top:1px solid var(--board-border);padding:.6rem 1rem;font-size:.9rem;line-height:1.55;color:var(--board-dim);margin:0}
-.pp-empty{margin-top:1rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;font-size:.9rem;line-height:1.55;color:var(--dim)}
+.pp-note{border-top:1px solid var(--board-border);padding:.8rem 1.25rem;font-size:.95rem;line-height:1.55;color:var(--board-dim);margin:0}
+@media (max-width:640px){.pp-section{padding:1.5rem 1rem}.pp-card-head{padding:.8rem 1rem}.pp-row{padding:.75rem 1rem}.pp-note{padding:.7rem 1rem}}
