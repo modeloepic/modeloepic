@@ -1,4 +1,4 @@
-/* Epic v30 — Parlay Epic público y gratis.
+/* Epic v31 — Parlay Epic: sección pública de la tarjeta del día.
  *
  * Lee por REST (clave anónima, la misma del bundle) las filas kind='parlay'
  * de hoy de la tabla premium_content y las pinta en una sección pública
@@ -21,22 +21,22 @@
     es: {
       title: "Parlay Epic",
       badge: "GRATIS",
-      sub: "El Parlay Epic del día, público y gratis para todos: múltiples selecciones con cuota de +400 a +500, elegido por el equipo Epic.",
+      sub: "",
       oddsLabel: "Cuota total",
       probLabel: "Prob. del modelo",
       loading: "Cargando el Parlay Epic de hoy…",
       notYet:
-        "El Parlay Epic de hoy aún no se publica. Vuelve en un rato: aparecerá aquí mismo, gratis para todos.",
+        "Aún no se publica el de hoy.",
     },
     en: {
       title: "Epic Parlay",
       badge: "FREE",
-      sub: "The day's Epic Parlay, public and free for everyone: multiple selections at +400 to +500 odds, picked by the Epic team.",
+      sub: "",
       oddsLabel: "Total odds",
       probLabel: "Model prob.",
       loading: "Loading today's Epic Parlay…",
       notYet:
-        "Today's Epic Parlay isn't published yet. Check back shortly: it will appear right here, free for everyone.",
+        "Today's is not published yet.",
     },
   };
 
