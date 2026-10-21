@@ -1370,3 +1370,31 @@ a.mysub-head{text-decoration:none}
    divisoria tenue en dorado al centro, en armonía con el carbón/oro. */
 .estx-list{gap:1.375rem}
 .estx-list>.gamepair+.gamepair{border-top:1px solid rgba(201,162,39,.18);padding-top:1.375rem}
+/* v30 — Parlay Epic público y gratis. Nueva sección pública
+   (#parlay-publico, la pinta assets/parlay-public.js) que muestra el
+   parlay del día sin cuenta ni suscripción, justo antes de la sección
+   de planes. En Planes desaparece la pestaña de compra del parlay:
+   lo que se vende es el acceso a los datos y estadísticas. */
+.pp-section{max-width:64rem;margin:0 auto;padding:2.5rem 1rem 0}
+.pp-head{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem}
+.pp-title{font-family:"Cinzel","Archivo",serif;font-size:1.5rem;font-weight:800;letter-spacing:-.01em;color:var(--text);margin:0}
+.pp-badge{border-radius:999px;padding:.3rem .7rem;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;font-weight:700;letter-spacing:.12em}
+.pp-sub{margin-top:.35rem;font-size:.9rem;line-height:1.55;color:var(--dim);max-width:42rem}
+.pp-card{margin-top:1rem;background:var(--board);border:1px solid var(--accent);border-radius:var(--radius);overflow:hidden}
+.pp-card-head{display:flex;flex-wrap:wrap;align-items:center;gap:.75rem;background:var(--board-surface);border-bottom:1px solid var(--board-border);padding:.6rem 1rem}
+.pp-card-title{font-family:"Cinzel","Archivo",serif;font-size:1rem;font-weight:700;letter-spacing:.02em;color:var(--board-text);margin:0}
+.pp-odds{margin:0 0 0 auto;text-align:right}
+.pp-odds-lab{display:block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--board-dim)}
+.pp-odds-val{font-family:"Cinzel","Archivo",serif;font-size:1.5rem;font-weight:700}
+.pp-list{list-style:none;margin:0;padding:0}
+.pp-row{display:flex;flex-wrap:wrap;align-items:center;gap:.35rem .75rem;padding:.6rem 1rem;border-top:1px solid var(--board-border)}
+.pp-sport{border-radius:4px;background:var(--board-surface);padding:.15rem .5rem;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-bright);border:1px solid var(--board-border)}
+.pp-pick{flex:1;min-width:0}
+.pp-game{display:block;font-size:.9rem;font-weight:600;color:var(--board-text)}
+.pp-line{display:block;font-size:.9rem;color:var(--board-dim)}
+.pp-cuota{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.85rem;font-weight:700;color:var(--accent-bright)}
+.pp-prob{text-align:right}
+.pp-prob-val{display:block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:1rem;font-weight:700;color:var(--accent-bright)}
+.pp-prob-lab{display:block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--board-dim)}
+.pp-note{border-top:1px solid var(--board-border);padding:.6rem 1rem;font-size:.9rem;line-height:1.55;color:var(--board-dim);margin:0}
+.pp-empty{margin-top:1rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;font-size:.9rem;line-height:1.55;color:var(--dim)}
