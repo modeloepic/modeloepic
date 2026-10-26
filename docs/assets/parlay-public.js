@@ -287,7 +287,7 @@
       "/rest/v1/premium_content?select=id,kind,sport,date,title,body,body_en,published" +
       "&kind=eq.parlay&date=eq." +
       day +
-      "&published=eq.true&order=created_at.asc";
+      "&published=eq.true&sport=eq.epic&order=created_at.asc";
     fetch(q, {
       headers: { apikey: ANON_KEY, Authorization: "Bearer " + ANON_KEY },
     })
