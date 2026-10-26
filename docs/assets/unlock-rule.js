@@ -22,7 +22,7 @@
       label: "OFERTA EPIC",
       title: "Paga 2 deportes y desbloquea TODO",
       body: "Elige tus dos deportes y accede a todas las secciones de Epic sin pagar más: los estudios y parlays de cada deporte en temporada, mientras mantengas tus dos suscripciones activas.",
-      fineTitle: "Reglas del desbloqueo — la letra pequeña, sin sorpresas",
+      fineTitle: "Cómo funciona tu acceso completo",
       fine: [
         "El desbloqueo total se activa al mantener activas dos suscripciones pagadas de deportes distintos. Cuentan la modalidad semanal y la mensual, y se pueden combinar.",
         "Las pruebas gratuitas de 3 días no cuentan para el desbloqueo.",
@@ -37,7 +37,7 @@
       label: "EPIC OFFER",
       title: "Pay for 2 sports, unlock EVERYTHING",
       body: "Pick your two sports and access every Epic section at no extra cost: the studies and parlays of each sport in season, while both of your subscriptions stay active.",
-      fineTitle: "Unlock rules — the fine print, no surprises",
+      fineTitle: "How your full access works",
       fine: [
         "The all-sports unlock activates when you keep two paid subscriptions to different sports active. Weekly and monthly plans both count and can be combined.",
         "The 3-day free trials do not count toward the unlock.",
