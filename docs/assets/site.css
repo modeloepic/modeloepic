@@ -1492,4 +1492,4 @@ a.mysub-head{text-decoration:none}
 
 /* Epic v55 — Nota al pie de la ventana de opciones: el clic en un
    deporte va directo al checkout de Whop y el código se pega allá. */
-.pm-foot{margin:0 0 1rem;font-size:.82rem;line-height:1.5;color:var(--board-dim,#b8b4a7)}
+.pm-foot{margin:0 0 1rem;padding:.7rem .85rem;border:1px dashed var(--accent,#c9a227);border-radius:10px;background:rgba(201,162,39,.09);font-size:.9rem;line-height:1.55;color:var(--board-text,#f2efe6)}
