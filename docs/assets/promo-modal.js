@@ -1,0 +1,258 @@
+/* Epic v53 — Ventana de opciones al aplicar un código (Fernando, 2026-10-27).
+ *
+ * Fernando pidió que al aplicar un código promocional — este y
+ * todos los futuros — se abra una VENTANA que le diga a la persona
+ * qué está canjeando y cuáles son las opciones disponibles para ESE
+ * código («estoy canjeando el código de cien dólares y tengo todas
+ * estas opciones»), y que desde ahí escoja su suscripción.
+ *
+ * Comportamiento:
+ *  - Se muestra UNA vez por aplicación, cuando el canje ocurre en
+ *    esta sesión: el canje manual de «Mi cuenta» y el canje del
+ *    registro (puente v48) escriben el resultado en sessionStorage
+ *    «epic-promo-result»; las restauraciones de sesiones anteriores
+ *    NO escriben resultado, así la ventana no salta en cada visita.
+ *  - La ventana se arma con las condiciones del código aplicado
+ *    (alcance y valor del estado «epic-promo»): alcance total lista
+ *    los cinco planes mensuales como opciones tocables; alcance de
+ *    un deporte lista solo ese plan.
+ *  - Tocar una opción cierra la ventana y lleva a Planes con la
+ *    pestaña Mensual activa y ese deporte preseleccionado (lo
+ *    ejecuta promo-cta.js con la misma señal «epic-promo-goto-
+ *    monthly»). El botón secundario lleva a Planes en Mensual sin
+ *    preselección, y la ✕ cierra sin navegar.
+ *  - La tarjeta persistente de «Mi cuenta» (v49+) queda como
+ *    recordatorio; esta ventana es el momento del canje.
+ */
+(function () {
+  "use strict";
+
+  var APPLIED_KEY = "epic-promo";
+  var RESULT_KEY = "epic-promo-result";
+  var GOTO_KEY = "epic-promo-goto-monthly";
+  var SHOWN_KEY = "epic-promo-modal-shown";
+  var MODAL_ID = "promo-modal-overlay";
+  var CHECK_MS = 1200;
+
+  var SPORTS = {
+    futbol: { es: "Fútbol", en: "Soccer", plan: "Fútbol Epic" },
+    ncaaf: { es: "NCAAF", en: "NCAAF", plan: "NCAAF Epic" },
+    nba: { es: "NBA", en: "NBA", plan: "NBA Epic" },
+    nhl: { es: "NHL", en: "NHL", plan: "NHL Epic" },
+    mlb: { es: "MLB", en: "MLB", plan: "MLB Epic" },
+  };
+  var ALL_KEYS = ["futbol", "ncaaf", "nba", "nhl", "mlb"];
+
+  var TXT = {
+    es: {
+      title: function (code) {
+        return "¡Tu código " + code + " está activo!";
+      },
+      subTotal: function (v) {
+        return v === 100
+          ? "Estás canjeando tu código de USD 100: el primer mes de tu suscripción mensual sale GRATIS. Estas son las opciones que tienes para canjearlo — elige tu deporte:"
+          : "Estás canjeando tu código de " +
+              v +
+              "% de descuento en el primer pago mensual. Estas son las opciones que tienes para canjearlo — elige tu deporte:";
+      },
+      subSport: function (v, name) {
+        return v === 100
+          ? "Estás canjeando tu código de USD 100: el primer mes de tu suscripción mensual sale GRATIS. Esta es la opción que tienes para canjearlo:"
+          : "Estás canjeando tu código de " +
+              v +
+              "% de descuento en el primer pago mensual. Esta es la opción que tienes para canjearlo:";
+      },
+      optionNote: function (v) {
+        return v === 100
+          ? "Plan mensual · USD 100/mes · primer mes GRATIS con tu código"
+          : "Plan mensual · primer pago con " + v + "% de descuento";
+      },
+      all: "Ver las opciones en Planes →",
+      close: "Cerrar",
+    },
+    en: {
+      title: function (code) {
+        return "Your " + code + " code is active!";
+      },
+      subTotal: function (v) {
+        return v === 100
+          ? "You are redeeming your USD 100 code: the first month of your monthly subscription is FREE. These are the options you can redeem it with — choose your sport:"
+          : "You are redeeming your " +
+              v +
+              "% off code for the first monthly payment. These are the options you can redeem it with — choose your sport:";
+      },
+      subSport: function (v, name) {
+        return v === 100
+          ? "You are redeeming your USD 100 code: the first month of your monthly subscription is FREE. This is the option you can redeem it with:"
+          : "You are redeeming your " +
+              v +
+              "% off code for the first monthly payment. This is the option you can redeem it with:";
+      },
+      optionNote: function (v) {
+        return v === 100
+          ? "Monthly plan · USD 100/mo · first month FREE with your code"
+          : "Monthly plan · first payment " + v + "% off";
+      },
+      all: "See the options in Plans →",
+      close: "Close",
+    },
+  };
+
+  function lang() {
+    try {
+      return window.localStorage.getItem("epic-lang") === "en" ? "en" : "es";
+    } catch (e) {
+      return "es";
+    }
+  }
+
+  function ssGet(k) {
+    try {
+      return window.sessionStorage.getItem(k);
+    } catch (e) {
+      return null;
+    }
+  }
+  function ssSet(k, v) {
+    try {
+      window.sessionStorage.setItem(k, v);
+    } catch (e) {}
+  }
+
+  function readApplied() {
+    var raw = ssGet(APPLIED_KEY);
+    if (!raw) return null;
+    try {
+      var t = JSON.parse(raw);
+      if (t && typeof t.code === "string" && typeof t.value === "number") {
+        return t;
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  function freshRedeem() {
+    /* Solo los canjes de ESTA sesión dejan resultado: el manual del
+       bundle y el puente al canjear. Las restauraciones, no. */
+    var raw = ssGet(RESULT_KEY);
+    if (!raw) return false;
+    try {
+      var t = JSON.parse(raw);
+      return !!(t && t.ok === true && typeof t.code === "string");
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function scopeOf(promo) {
+    var sc = typeof promo.scope_sport === "string" ? promo.scope_sport : "total";
+    return SPORTS[sc] ? sc : "total";
+  }
+
+  function goToPlanes(sportKey) {
+    ssSet(GOTO_KEY, JSON.stringify({ sport: sportKey || "total" }));
+    window.location.hash = "#/planes";
+  }
+
+  function closeModal() {
+    var el = document.getElementById(MODAL_ID);
+    if (el && el.parentElement) el.parentElement.removeChild(el);
+  }
+
+  function showModal(promo) {
+    if (document.getElementById(MODAL_ID)) return;
+    var t = TXT[lang()];
+    var scope = scopeOf(promo);
+    var scoped = scope !== "total";
+    var keys = scoped ? [scope] : ALL_KEYS;
+
+    var overlay = document.createElement("div");
+    overlay.id = MODAL_ID;
+    overlay.className = "pm-overlay";
+
+    var box = document.createElement("div");
+    box.className = "pm-box";
+    box.setAttribute("role", "dialog");
+    box.setAttribute("aria-modal", "true");
+
+    var x = document.createElement("button");
+    x.type = "button";
+    x.className = "pm-close";
+    x.setAttribute("aria-label", t.close);
+    x.textContent = "✕";
+    x.addEventListener("click", closeModal);
+    box.appendChild(x);
+
+    var h = document.createElement("p");
+    h.className = "pm-title";
+    h.textContent = t.title(promo.code);
+    box.appendChild(h);
+
+    var sub = document.createElement("p");
+    sub.className = "pm-sub";
+    sub.textContent = scoped
+      ? t.subSport(promo.value, SPORTS[scope][lang()])
+      : t.subTotal(promo.value);
+    box.appendChild(sub);
+
+    var list = document.createElement("div");
+    list.className = "pm-list";
+    keys.forEach(function (key) {
+      var meta = SPORTS[key];
+      var opt = document.createElement("button");
+      opt.type = "button";
+      opt.className = "pm-option";
+      var name = document.createElement("span");
+      name.className = "pm-opt-name";
+      name.textContent = meta.plan;
+      opt.appendChild(name);
+      var note = document.createElement("span");
+      note.className = "pm-opt-note";
+      note.textContent = t.optionNote(promo.value);
+      opt.appendChild(note);
+      opt.addEventListener("click", function () {
+        closeModal();
+        goToPlanes(key);
+      });
+      list.appendChild(opt);
+    });
+    box.appendChild(list);
+
+    if (!scoped) {
+      var all = document.createElement("button");
+      all.type = "button";
+      all.className = "pm-all";
+      all.textContent = t.all;
+      all.addEventListener("click", function () {
+        closeModal();
+        goToPlanes("total");
+      });
+      box.appendChild(all);
+    }
+
+    overlay.appendChild(box);
+    overlay.addEventListener("click", function (e) {
+      if (e.target === overlay) closeModal();
+    });
+    document.body.appendChild(overlay);
+    ssSet(SHOWN_KEY, promo.code);
+  }
+
+  function tick() {
+    var promo = readApplied();
+    if (!promo) return;
+    if (!freshRedeem()) return;
+    if (ssGet(SHOWN_KEY) === promo.code) return;
+    if (!document.body) return;
+    showModal(promo);
+  }
+
+  window.addEventListener("epic:promo-changed", function () {
+    setTimeout(tick, 80);
+  });
+  window.addEventListener("hashchange", function () {
+    setTimeout(tick, 150);
+  });
+  setInterval(tick, CHECK_MS);
+  tick();
+})();
