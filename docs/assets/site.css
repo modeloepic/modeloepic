@@ -1462,3 +1462,14 @@ a.mysub-head{text-decoration:none}
 .cg-btn{display:block;width:100%;box-sizing:border-box;padding:.75rem 1.1rem;border:none;border-radius:999px;background:var(--accent,#c9a227);color:#101013;font-family:"Archivo",sans-serif;font-size:.95rem;font-weight:800;cursor:pointer}
 .cg-btn:hover{opacity:.88}
 .cg-close{position:absolute;top:.5rem;right:.6rem;border:none;background:transparent;color:var(--board-dim,#b8b4a7);font-size:1rem;cursor:pointer;padding:.25rem}
+
+/* Epic v49 — Tarjeta «del canje a elegir tu deporte» (.pc-*): la
+   inyecta assets/promo-cta.js en «Mi cuenta» cuando hay un código
+   activo; lleva a Planes con la pestaña Mensual activa. */
+.pc-block{margin:1.25rem auto 0;max-width:34rem;box-sizing:border-box;padding:1.2rem 1.25rem;background:var(--board,#17171c);border:1px dashed var(--accent,#c9a227);border-radius:var(--radius,14px);text-align:center}
+.pc-title{margin:0 0 .5rem;font-family:"Archivo",sans-serif;font-size:1.05rem;font-weight:800;color:var(--accent,#c9a227)}
+.pc-body{margin:0 0 .9rem;font-size:.92rem;line-height:1.55;color:var(--board-text,#f2efe6)}
+.pc-chips{display:flex;flex-wrap:wrap;gap:.45rem;justify-content:center;margin:0 0 1rem}
+.pc-chip{padding:.32rem .8rem;border:1px solid var(--accent,#c9a227);border-radius:999px;font-size:.82rem;font-weight:700;color:var(--board-text,#f2efe6)}
+.pc-btn{display:block;width:100%;box-sizing:border-box;padding:.8rem 1.1rem;border:none;border-radius:999px;background:var(--accent,#c9a227);color:#101013;font-family:"Archivo",sans-serif;font-size:.98rem;font-weight:800;cursor:pointer}
+.pc-btn:hover{opacity:.88}
