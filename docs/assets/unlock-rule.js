@@ -42,7 +42,7 @@
         "While both subscriptions are active, your account accesses every Epic sports section at no additional cost.",
         "If one of the two subscriptions expires or is cancelled, once its paid period ends your access returns to the sport that remains active.",
         "Each sport publishes studies and parlays daily only during its season; out of season, no new content is produced for that sport.",
-        "EPICGRATIS: 100% off the first payment of your second sport on a monthly plan. Capped at 100 redemptions, one use per user.",
+        "EPICFREE: 100% off the first payment of your second sport on a monthly plan. Capped at 100 redemptions, one use per user.",
         "The Total Package is no longer offered as a separate product.",
       ],
     },
