@@ -1,5 +1,10 @@
 /* Epic v32 — Parlay Epic: tarjeta pública del día, EL GANCHO de la página.
  *
+ * v43 (2026-10-27, Luna): SIN CUOTA POR LEG (regla de Pedro) — la tarjeta
+ * pública ya NO pinta la cuota individual de cada selección; cada leg se
+ * muestra solo con juego y línea, y la única cuota visible es la TOTAL.
+ * El body conserva la cuota por leg como dato (no se toca la base).
+ *
  * Lee por REST (clave anónima, la misma del bundle) las filas kind='parlay'
  * de hoy de la tabla premium_content y las pinta en una sección pública
  * (#parlay-publico) colocada JUSTO ARRIBA de la sección de marcadores
@@ -98,7 +103,8 @@
   }
 
   /* Normaliza el body igual que a1() en el bundle, aceptando además
-     cuota_combinada / combined_odds y la cuota por selección. */
+     cuota_combinada / combined_odds. La cuota por selección ya NO se
+     lee ni se pinta (regla sin cuota por leg, v43). */
   function normalize(body) {
     var out = { picks: [], total: null, nota: null };
     if (!body || typeof body !== "object") return out;
@@ -110,7 +116,6 @@
           deporte: str(p.deporte, p.sport),
           juego: str(p.juego, p.game, p.partido, p.matchup),
           linea: str(p.linea, p.line, p.pick, p.seleccion, p.mercado),
-          cuota: str(p.cuota, p.odds),
           probabilidad: prob(
             p.probabilidad != null
               ? p.probabilidad
@@ -171,7 +176,6 @@
         if (p.juego) pick.appendChild(el("span", "pp-game", p.juego));
         if (p.linea) pick.appendChild(el("span", "pp-line", p.linea));
         li.appendChild(pick);
-        if (p.cuota) li.appendChild(el("span", "pp-cuota", p.cuota));
         if (p.probabilidad !== null) {
           var pr = el("span", "pp-prob");
           pr.appendChild(el("span", "pp-prob-val", p.probabilidad + "%"));
