@@ -1,4 +1,4 @@
-/* Epic v50 — Del canje a elegir tu deporte, para TODOS los códigos.
+/* Epic v51 — Del canje a elegir tu deporte, para TODOS los códigos.
  *
  * Regla permanente de Fernando (2026-10-27): cada vez que se cree un
  * código promocional y alguien lo aplique, el flujo debe llevarlo a
@@ -238,33 +238,33 @@
     } catch (e) {}
   }
 
-  function monthlyConfirmed() {
+  /* Las pestañas del bundle son <button role="tab"> cuyo texto
+     completo es etiqueta + pista («Mensual» + «Desde $100 / mes»):
+     se busca por PREFIJO de la etiqueta, no por igualdad — ese fue
+     el fallo de la v49/v50 — y la confirmación es aria-selected. */
+  function findMonthlyTab() {
     var t = TXT[lang()];
-    if ((document.body.textContent || "").indexOf(t.monthlyTotal) !== -1) {
-      return true;
-    }
-    var tabs = document.querySelectorAll("button, [role='tab']");
+    var tabs = document.querySelectorAll('[role="tab"]');
     for (var i = 0; i < tabs.length; i++) {
-      if ((tabs[i].textContent || "").trim() === t.monthlyTab) {
-        if (
-          tabs[i].getAttribute("aria-selected") === "true" ||
-          /active|selected|current/i.test(tabs[i].className || "")
-        ) {
-          return true;
-        }
+      if ((tabs[i].textContent || "").trim().indexOf(t.monthlyTab) === 0) {
+        return tabs[i];
       }
     }
-    return false;
+    return null;
+  }
+
+  function monthlyConfirmed() {
+    var t = TXT[lang()];
+    var tab = findMonthlyTab();
+    if (tab && tab.getAttribute("aria-selected") === "true") return true;
+    return (document.body.textContent || "").indexOf(t.monthlyTotal) !== -1;
   }
 
   function clickMonthlyTab() {
-    var t = TXT[lang()];
-    var tabs = document.querySelectorAll("button, [role='tab']");
-    for (var i = 0; i < tabs.length; i++) {
-      if ((tabs[i].textContent || "").trim() === t.monthlyTab) {
-        tabs[i].click();
-        return true;
-      }
+    var tab = findMonthlyTab();
+    if (tab) {
+      tab.click();
+      return true;
     }
     return false;
   }
