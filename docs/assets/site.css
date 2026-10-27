@@ -1438,3 +1438,16 @@ a.mysub-head{text-decoration:none}
 .cf-note{margin:0 0 1rem;font-size:.9375rem;line-height:1.55;color:var(--board-dim,#b8b4a7)}
 .cf-btn{display:block;width:100%;box-sizing:border-box;padding:.85rem 1.25rem;border-radius:999px;background:var(--accent,#c9a227);color:#101013;font-family:"Archivo",sans-serif;font-size:1rem;font-weight:800;letter-spacing:.01em;text-align:center;text-decoration:none;transition:opacity .15s ease}
 .cf-btn:hover{opacity:.88}
+
+/* Epic v46 — Caja del código promocional dentro del modal de pago
+   (.cf-codebox y afines): Whop no aplica el código desde el enlace
+   (verificado), así que checkout-fix.js lo muestra en el modal con
+   botón de copiar y la instrucción de pegarlo en «Add promo code». */
+.cf-codebox{margin:0 0 1.1rem;padding:1rem 1.1rem;border:1px dashed var(--accent,#c9a227);border-radius:var(--radius,14px);background:rgba(201,162,39,.07)}
+.cf-codelabel{display:block;font-family:"Cinzel","Archivo",serif;font-size:.72rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--accent-bright,#e6c65a);margin-bottom:.55rem}
+.cf-coderow{display:flex;align-items:center;justify-content:center;gap:.6rem;flex-wrap:wrap}
+.cf-code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:1.35rem;font-weight:700;letter-spacing:.14em;color:var(--board-text,#f2efe6)}
+.cf-copy{flex:none;padding:.45rem .95rem;border-radius:999px;border:1px solid var(--accent,#c9a227);background:transparent;color:var(--accent-bright,#e6c65a);font-family:"Archivo",sans-serif;font-size:.85rem;font-weight:700;cursor:pointer}
+.cf-copy:hover{background:rgba(201,162,39,.14)}
+.cf-step{margin:.65rem 0 0;font-size:.875rem;line-height:1.5;color:var(--board-dim,#b8b4a7)}
+.cf-hint{margin:.8rem 0 0;font-size:.85rem;line-height:1.5;color:var(--board-dim,#b8b4a7)}
