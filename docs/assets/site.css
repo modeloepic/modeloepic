@@ -1429,3 +1429,12 @@ a.mysub-head{text-decoration:none}
 .ur-fine-title{font-family:"Cinzel","Archivo",serif;font-size:.7rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--text);margin:0 0 .45rem}
 .ur-fine p{margin:.3rem 0}
 @media (max-width:640px){.ur-banner{gap:.8rem;padding:.95rem 1rem;margin-top:1.25rem}.ur-icon{width:2.375rem;height:2.375rem}.ur-icon svg{width:1.1875rem;height:1.1875rem}.ur-label{font-size:.75rem}.ur-title{font-size:1.02rem}.ur-body{font-size:.9rem}}
+
+/* Epic v42 — Botón al checkout estándar de Whop dentro del modal de
+   pago (.cf-*): lo inyecta assets/checkout-fix.js en .co-embed porque
+   la ruta embebida de Whop devuelve «no longer available» para este
+   negocio. Botón dorado del sistema (acento #c9a227 sobre carbón). */
+.cf-wrap{padding:1.25rem .5rem .5rem;text-align:center}
+.cf-note{margin:0 0 1rem;font-size:.9375rem;line-height:1.55;color:var(--board-dim,#b8b4a7)}
+.cf-btn{display:block;width:100%;box-sizing:border-box;padding:.85rem 1.25rem;border-radius:999px;background:var(--accent,#c9a227);color:#101013;font-family:"Archivo",sans-serif;font-size:1rem;font-weight:800;letter-spacing:.01em;text-align:center;text-decoration:none;transition:opacity .15s ease}
+.cf-btn:hover{opacity:.88}
