@@ -1,4 +1,4 @@
-/* Epic v55 — Ventana de opciones al aplicar un código (Fernando, 2026-10-27).
+/* Epic v57 — Ventana de opciones al aplicar un código (Fernando, 2026-10-27).
  *
  * Fernando pidió que al aplicar un código promocional — este y
  * todos los futuros — se abra una VENTANA que le diga a la persona
@@ -160,13 +160,17 @@
   }
 
   function freshRedeem() {
-    /* Solo los canjes de ESTA sesión dejan resultado: el manual del
-       bundle y el puente al canjear. Las restauraciones, no. */
+    /* Solo los canjes de ESTA sesión dejan resultado con ok:true.
+       OJO (v57): el resultado del canje MANUAL del bundle NO trae
+       el campo «code» (su respuesta RPC es {ok, kind, value,
+       scope_sport, reason, extended}); exigirlo dejaba la ventana
+       sin abrir en ese camino — visto en vivo el 2026-10-27. El
+       código se lee del estado aplicado, no del resultado. */
     var raw = ssGet(RESULT_KEY);
     if (!raw) return false;
     try {
       var t = JSON.parse(raw);
-      return !!(t && t.ok === true && typeof t.code === "string");
+      return !!(t && t.ok === true);
     } catch (e) {
       return false;
     }
