@@ -1,4 +1,4 @@
-/* Epic v57 — Ventana de opciones al aplicar un código (Fernando, 2026-10-27).
+/* Epic v58 — Ventana de opciones al aplicar un código (Fernando, 2026-10-27).
  *
  * Fernando pidió que al aplicar un código promocional — este y
  * todos los futuros — se abra una VENTANA que le diga a la persona
@@ -8,10 +8,13 @@
  *
  * Comportamiento:
  *  - Se muestra UNA vez por aplicación, cuando el canje ocurre en
- *    esta sesión: el canje manual de «Mi cuenta» y el canje del
- *    registro (puente v48) escriben el resultado en sessionStorage
- *    «epic-promo-result»; las restauraciones de sesiones anteriores
- *    NO escriben resultado, así la ventana no salta en cada visita.
+ *    esta sesión. El disparador es la TRANSICIÓN del estado
+ *    aplicado («epic-promo») de ausente a presente con un código
+ *    nuevo en esta vista de página: el canje manual de «Mi cuenta»
+ *    solo escribe ese estado y dispara el evento (su manejador en
+ *    el bundle NUNCA escribe «epic-promo-result» — verificado en
+ *    el código y en vivo el 2026-10-27; las v53–v57, que miraban
+ *    el resultado, no abrían la ventana en ese camino).
  *  - La ventana se arma con las condiciones del código aplicado
  *    (alcance y valor del estado «epic-promo»): alcance total lista
  *    los cinco planes mensuales como opciones tocables; alcance de
@@ -30,7 +33,6 @@
   "use strict";
 
   var APPLIED_KEY = "epic-promo";
-  var RESULT_KEY = "epic-promo-result";
   var GOTO_KEY = "epic-promo-goto-monthly";
   var SHOWN_KEY = "epic-promo-modal-shown";
   var MODAL_ID = "promo-modal-overlay";
@@ -159,23 +161,6 @@
     return null;
   }
 
-  function freshRedeem() {
-    /* Solo los canjes de ESTA sesión dejan resultado con ok:true.
-       OJO (v57): el resultado del canje MANUAL del bundle NO trae
-       el campo «code» (su respuesta RPC es {ok, kind, value,
-       scope_sport, reason, extended}); exigirlo dejaba la ventana
-       sin abrir en ese camino — visto en vivo el 2026-10-27. El
-       código se lee del estado aplicado, no del resultado. */
-    var raw = ssGet(RESULT_KEY);
-    if (!raw) return false;
-    try {
-      var t = JSON.parse(raw);
-      return !!(t && t.ok === true);
-    } catch (e) {
-      return false;
-    }
-  }
-
   function scopeOf(promo) {
     var sc = typeof promo.scope_sport === "string" ? promo.scope_sport : "total";
     return SPORTS[sc] ? sc : "total";
@@ -284,10 +269,25 @@
     ssSet(SHOWN_KEY, promo.code);
   }
 
+  var seenInit = false;
+  var lastSeenCode = null;
+
   function tick() {
     var promo = readApplied();
-    if (!promo) return;
-    if (!freshRedeem()) return;
+    if (!seenInit) {
+      /* Primera lectura de esta vista: lo que ya esté aplicado se
+         toma como visto (p. ej. una recarga a mitad de sesión) y
+         no abre la ventana. */
+      seenInit = true;
+      lastSeenCode = promo ? promo.code : null;
+      return;
+    }
+    if (!promo) {
+      lastSeenCode = null;
+      return;
+    }
+    if (promo.code === lastSeenCode) return;
+    lastSeenCode = promo.code;
     if (ssGet(SHOWN_KEY) === promo.code) return;
     if (!document.body) return;
     showModal(promo);
