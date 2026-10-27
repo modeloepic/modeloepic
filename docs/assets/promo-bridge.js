@@ -1,4 +1,4 @@
-/* Epic v48 — Puente del código promocional del registro.
+/* Epic v56 — Puente del código promocional del registro.
  *
  * Diagnóstico (2026-10-27, verificado contra el servidor): el código
  * que el visitante escribe al registrarse se guarda como pendiente
@@ -18,12 +18,21 @@
  *     (sessionStorage «epic-promo» {code, value, scope_sport} +
  *     sessionStorage «epic-promo-result» + evento
  *     «epic:promo-changed»), para que el modal de pago lo tome.
- *  3. Guarda copia durable del canje ligada al id del usuario y la
- *     restaura en sesiones futuras (el canje ya no se pierde al
- *     cerrar la pestaña).
- * Sin sesión no hace nada. Si el servidor declara el código inválido
- * (not_found, inactive, expired, exhausted, not_started), limpia el
- * pendiente y no reintenta.
+ *  3. (v56, orden de Fernando del 2026-10-27 — reemplaza la copia
+ *     durable de la v48) El código aplicado NO sobrevive al cierre
+ *     de sesión: al cerrar sesión (manual o por inactividad) se
+ *     borra el estado aplicado, para que la persona ingrese su
+ *     código en cada inicio de sesión y pueda usar uno distinto
+ *     si quiere. No se guarda copia durable alguna: la clave
+ *     «epic-promo-saved» de versiones anteriores se elimina
+ *     siempre que se detecta. El vigilante de sesión corre en cada
+ *     ciclo, aunque el canje ya esté hecho: detecta el cierre por
+ *     la desaparición de la sesión de Supabase, por el arranque sin
+ *     sesión con estado aplicado residual, y por el cambio directo
+ *     a otra cuenta.
+ * Si el servidor declara el código inválido (not_found, inactive,
+ * expired, exhausted, not_started), limpia el pendiente y no
+ * reintenta.
  */
 (function () {
   "use strict";
@@ -37,7 +46,8 @@
   var APPLIED_KEY = "epic-promo"; /* sessionStorage, del bundle */
   var RESULT_KEY = "epic-promo-result"; /* sessionStorage, del bundle */
   var BACKUP_KEY = "epic-promo-pending-backup"; /* propia */
-  var SAVED_KEY = "epic-promo-saved"; /* propia, durable */
+  var SAVED_KEY = "epic-promo-saved"; /* propia, durable — v56: prohibida, se purga */
+  var SHOWN_KEY = "epic-promo-modal-shown"; /* de promo-modal.js */
   var CHANGED_EVENT = "epic:promo-changed";
   var CHECK_MS = 1500;
   var MAX_ATTEMPTS = 10;
@@ -73,6 +83,11 @@
   function ssSet(k, v) {
     try {
       window.sessionStorage.setItem(k, v);
+    } catch (e) {}
+  }
+  function ssDel(k) {
+    try {
+      window.sessionStorage.removeItem(k);
     } catch (e) {}
   }
 
@@ -114,16 +129,6 @@
     return null;
   }
 
-  function readSaved() {
-    var raw = lsGet(SAVED_KEY);
-    if (!raw) return null;
-    try {
-      var t = JSON.parse(raw);
-      if (t && typeof t.code === "string" && typeof t.value === "number") return t;
-    } catch (e) {}
-    return null;
-  }
-
   function fireChanged() {
     try {
       window.dispatchEvent(new Event(CHANGED_EVENT));
@@ -137,15 +142,6 @@
         code: promo.code,
         value: promo.value,
         scope_sport: promo.scope_sport || "total",
-      })
-    );
-    lsSet(
-      SAVED_KEY,
-      JSON.stringify({
-        code: promo.code,
-        value: promo.value,
-        scope_sport: promo.scope_sport || "total",
-        uid: uid || null,
       })
     );
     fireChanged();
@@ -226,7 +222,42 @@
       });
   }
 
+  /* --- v56: el código muere con la sesión --- */
+  var lastMark; /* undefined = primer ciclo */
+
+  function clearPromoState() {
+    ssDel(APPLIED_KEY);
+    ssDel(RESULT_KEY);
+    ssDel(SHOWN_KEY);
+    lsDel(PENDING_KEY);
+    lsDel(BACKUP_KEY);
+    lsDel(SAVED_KEY);
+    done = false;
+    attempts = 0;
+    fireChanged();
+  }
+
+  function watchSession() {
+    /* La copia durable de versiones anteriores queda prohibida:
+       se elimina cada vez que aparezca. */
+    lsDel(SAVED_KEY);
+    var session = getSession();
+    var mark = session ? session.uid || "tok" : null;
+    if (lastMark === undefined) {
+      /* Arranque: sin sesión no puede quedar código aplicado. */
+      if (!session && (ssGet(APPLIED_KEY) || ssGet(RESULT_KEY))) {
+        clearPromoState();
+      }
+    } else if (lastMark && (!mark || mark !== lastMark)) {
+      /* Cierre de sesión o cambio directo de cuenta: el código
+         aplicado era de la sesión anterior y se elimina. */
+      clearPromoState();
+    }
+    lastMark = mark;
+  }
+
   function tick() {
+    watchSession();
     if (done || inFlight) return;
 
     /* 1) Respaldar el pendiente en cuanto aparezca. */
@@ -236,47 +267,14 @@
     var session = getSession();
     if (!session) return;
 
-    /* 1b) Higiene entre cuentas en el mismo navegador: si el estado
-       aplicado visible es la copia durable de OTRO usuario (otro
-       uid), se retira de sessionStorage para no mostrar el código
-       de una cuenta en otra (detectado en pruebas con cuentas
-       consecutivas en el mismo navegador, 2026-10-27). */
-    var appliedStale = readApplied();
-    var savedStale = readSaved();
-    if (
-      appliedStale &&
-      savedStale &&
-      savedStale.uid &&
-      session.uid &&
-      savedStale.uid !== session.uid &&
-      appliedStale.code === savedStale.code
-    ) {
-      try {
-        window.sessionStorage.removeItem(APPLIED_KEY);
-        window.sessionStorage.removeItem(RESULT_KEY);
-      } catch (e) {}
-    }
-
-    /* 2) Si el bundle ya aplicó un canje, sincronizar la copia durable. */
-    var applied = readApplied();
-    if (applied) {
-      var saved = readSaved();
-      if (!saved || saved.code !== applied.code || saved.uid !== session.uid) {
-        writeApplied(applied, session.uid);
-      }
+    /* 2) Si ya hay un canje aplicado en ESTA sesión, nada que hacer.
+       (Sin restauración durable: ver la regla v56 del encabezado.) */
+    if (readApplied()) {
       done = true;
       return;
     }
 
-    /* 3) Restaurar la copia durable de ESTE usuario. */
-    var mine = readSaved();
-    if (mine && mine.uid && session.uid && mine.uid === session.uid) {
-      writeApplied(mine, session.uid);
-      done = true;
-      return;
-    }
-
-    /* 4) Canjear el código pendiente (del registro o respaldado). */
+    /* 3) Canjear el código pendiente (del registro o respaldado). */
     var code = pending || lsGet(BACKUP_KEY);
     if (code && attempts < MAX_ATTEMPTS) {
       redeem(String(code).trim().toUpperCase(), session);
