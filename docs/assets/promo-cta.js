@@ -1,4 +1,10 @@
-/* Epic v51 — Del canje a elegir tu deporte, para TODOS los códigos.
+/* Epic v61 — Del canje a elegir tu deporte, para TODOS los códigos.
+ * v61 (orden de Fernando, 2026-10-27): los deportes de ESTA TARJETA
+ * dejan de ser etiquetas decorativas — cada uno es un botón que va
+ * DIRECTO al checkout de Whop de su plan mensual (igual que la
+ * ventana emergente desde la v55), y la tarjeta muestra el mismo
+ * aviso «Recuerda» de pegar el código en «Add promo code» de Whop.
+ * El botón grande queda como ruta secundaria a Planes.
  *
  * Regla permanente de Fernando (2026-10-27): cada vez que se cree un
  * código promocional y alguien lo aplique, el flujo debe llevarlo a
@@ -34,6 +40,15 @@
   };
   var ALL_KEYS = ["futbol", "ncaaf", "nba", "nhl", "mlb"];
 
+  var PLAN_URLS = {
+    futbol: "https://whop.com/checkout/plan_uBL2Bj5iHnTb3",
+    ncaaf: "https://whop.com/checkout/plan_hOUzr71Mn8IPI",
+    nba: "https://whop.com/checkout/plan_6oQYfDyUdoquf",
+    nhl: "https://whop.com/checkout/plan_bxvO6X36T8quS",
+    mlb: "https://whop.com/checkout/plan_OGB3MQMIsVsHT",
+  };
+  var ICONS = { futbol: "⚽", ncaaf: "🏈", nba: "🏀", nhl: "🏒", mlb: "⚾" };
+
   var TXT = {
     es: {
       title: function (code) {
@@ -41,25 +56,31 @@
       },
       bodyTotal: function (v) {
         return v === 100
-          ? "Vale por el primer mes GRATIS (USD 100) de cualquiera de los cinco deportes en plan mensual. Tú decides con cuál lo canjeas:"
+          ? "Vale por el primer mes GRATIS (USD 100) de cualquiera de los cinco deportes en plan mensual. Tú decides con cuál lo canjeas — toca el deporte para ir directo a su pago en Whop:"
           : "Vale por un " +
               v +
-              "% de descuento en el primer pago de cualquiera de los cinco deportes en plan mensual. Tú decides con cuál lo canjeas:";
+              "% de descuento en el primer pago de cualquiera de los cinco deportes en plan mensual. Tú decides con cuál lo canjeas — toca el deporte para ir directo a su pago en Whop:";
       },
       bodySport: function (v, name) {
         return v === 100
           ? "Vale por el primer mes GRATIS (USD 100) del plan mensual de " +
               name +
-              ". Canjéalo aquí:"
+              ". Toca el deporte para ir directo a su pago en Whop:"
           : "Vale por un " +
               v +
               "% de descuento en el primer pago del plan mensual de " +
               name +
-              ". Canjéalo aquí:";
+              ". Toca el deporte para ir directo a su pago en Whop:";
       },
-      btnTotal: "Elegir mi deporte mensual →",
+      btnTotal: "Ver las opciones en Planes →",
       btnSport: function (name) {
-        return "Elegir mi plan mensual de " + name + " →";
+        return "Ver el plan de " + name + " en Planes →";
+      },
+      note: function (code) {
+        return (
+          "¡Recuerda! Al tocar tu deporte irás directo a Whop: coloca tu código promocional en «Add promo code» y dale «Apply» para disfrutar de nuestro descuento: " +
+          code
+        );
       },
       monthlyTab: "Mensual",
       monthlyTotal: "Total mensual",
@@ -70,25 +91,31 @@
       },
       bodyTotal: function (v) {
         return v === 100
-          ? "It covers the first month FREE (USD 100) of any of the five sports on a monthly plan. You choose which sport to redeem it with:"
+          ? "It covers the first month FREE (USD 100) of any of the five sports on a monthly plan. You choose which sport to redeem it with — tap the sport to go straight to its Whop checkout:"
           : "It gives " +
               v +
-              "% off the first payment of any of the five sports on a monthly plan. You choose which sport to redeem it with:";
+              "% off the first payment of any of the five sports on a monthly plan. You choose which sport to redeem it with — tap the sport to go straight to its Whop checkout:";
       },
       bodySport: function (v, name) {
         return v === 100
           ? "It covers the first month FREE (USD 100) of the " +
               name +
-              " monthly plan. Redeem it here:"
+              " monthly plan. Tap the sport to go straight to its Whop checkout:"
           : "It gives " +
               v +
               "% off the first payment of the " +
               name +
-              " monthly plan. Redeem it here:";
+              " monthly plan. Tap the sport to go straight to its Whop checkout:";
       },
-      btnTotal: "Choose my monthly sport →",
+      btnTotal: "See the options in Plans →",
       btnSport: function (name) {
-        return "Choose my " + name + " monthly plan →";
+        return "See the " + name + " plan in Plans →";
+      },
+      note: function (code) {
+        return (
+          "Remember! Tapping your sport takes you straight to Whop: enter your promo code under “Add promo code” and hit “Apply” to enjoy our discount: " +
+          code
+        );
       },
       monthlyTab: "Monthly",
       monthlyTotal: "Monthly total",
@@ -192,12 +219,21 @@
     var chips = document.createElement("div");
     chips.className = "pc-chips";
     (scopedSport ? [scope] : ALL_KEYS).forEach(function (key) {
-      var chip = document.createElement("span");
+      var chip = document.createElement("button");
+      chip.type = "button";
       chip.className = "pc-chip";
-      chip.textContent = SPORTS[key][lang()];
+      chip.textContent = ICONS[key] + " " + SPORTS[key][lang()];
+      chip.addEventListener("click", function () {
+        window.location.href = PLAN_URLS[key];
+      });
       chips.appendChild(chip);
     });
     block.appendChild(chips);
+
+    var note = document.createElement("p");
+    note.className = "pc-note";
+    note.textContent = t.note(promo.code);
+    block.appendChild(note);
 
     var btn = document.createElement("button");
     btn.type = "button";
