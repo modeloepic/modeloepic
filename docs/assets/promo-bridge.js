@@ -236,6 +236,27 @@
     var session = getSession();
     if (!session) return;
 
+    /* 1b) Higiene entre cuentas en el mismo navegador: si el estado
+       aplicado visible es la copia durable de OTRO usuario (otro
+       uid), se retira de sessionStorage para no mostrar el código
+       de una cuenta en otra (detectado en pruebas con cuentas
+       consecutivas en el mismo navegador, 2026-10-27). */
+    var appliedStale = readApplied();
+    var savedStale = readSaved();
+    if (
+      appliedStale &&
+      savedStale &&
+      savedStale.uid &&
+      session.uid &&
+      savedStale.uid !== session.uid &&
+      appliedStale.code === savedStale.code
+    ) {
+      try {
+        window.sessionStorage.removeItem(APPLIED_KEY);
+        window.sessionStorage.removeItem(RESULT_KEY);
+      } catch (e) {}
+    }
+
     /* 2) Si el bundle ya aplicó un canje, sincronizar la copia durable. */
     var applied = readApplied();
     if (applied) {
