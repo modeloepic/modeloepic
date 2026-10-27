@@ -1,4 +1,4 @@
-/* Epic v59 — Ventana de opciones al aplicar un código (Fernando, 2026-10-27).
+/* Epic v60 — Ventana de opciones al aplicar un código (Fernando, 2026-10-27).
  *
  * Fernando pidió que al aplicar un código promocional — este y
  * todos los futuros — se abra una VENTANA que le diga a la persona
@@ -85,7 +85,7 @@
       },
       directNote: function (code) {
         return (
-          "Recuerda: al tocar tu deporte irás directo al checkout de Whop, y para que tu código sea efectivo debes pegarlo en «Add promo code» de Whop y darle «Apply»: " +
+          "¡Recuerda! Al tocar tu deporte irás directo a Whop: coloca tu código promocional en «Add promo code» y dale «Apply» para disfrutar de nuestro descuento: " +
           code
         );
       },
@@ -117,7 +117,7 @@
       },
       directNote: function (code) {
         return (
-          "Remember: tapping your sport takes you straight to the Whop checkout, and for your code to take effect you must paste it under “Add promo code” on Whop and hit “Apply”: " +
+          "Remember! Tapping your sport takes you straight to Whop: enter your promo code under “Add promo code” and hit “Apply” to enjoy our discount: " +
           code
         );
       },
