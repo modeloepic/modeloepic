@@ -1,22 +1,20 @@
-/* Epic v49 — Del canje a elegir tu deporte (orden de Fernando, 2026-10-27).
+/* Epic v50 — Del canje a elegir tu deporte, para TODOS los códigos.
  *
- * Fernando pidió que al aplicar un código, la persona no quede
- * suelta en la página: un enlace debe llevarla directo a las
- * suscripciones que puede canjear con ese código — los cinco planes
- * MENSUALES (Fútbol, NCAAF, NBA, NHL, MLB) — para que ella decida
- * con cuál deporte cambia su código de USD 100.
- *
- * Este script aditivo observa el estado aplicado del bundle
- * (sessionStorage «epic-promo», que escriben el canje manual de
- * «Mi cuenta» y el puente v48) y, cuando hay un código activo:
- *  1. En «Mi cuenta» (#/cuenta), junto al área del código, inyecta
- *     la tarjeta «Tu código ya está activo» con los cinco deportes
- *     mensuales y el botón dorado «Elegir mi deporte mensual».
- *  2. Ese botón navega a Planes (#/planes) y deja la pestaña
- *     «Mensual» activa (clic nativo sobre la pestaña), para que la
- *     persona escoja el deporte con su código ya reflejado en el
- *     resumen («Código promocional: … (−100%)», texto nativo).
- * Sin código aplicado no muestra nada.
+ * Regla permanente de Fernando (2026-10-27): cada vez que se cree un
+ * código promocional y alguien lo aplique, el flujo debe llevarlo a
+ * una página donde escoja QUÉ está cambiando con ESE código. La
+ * tarjeta se arma con las condiciones del código aplicado (su
+ * alcance y su valor, leídos del estado del bundle en sessionStorage
+ * «epic-promo»), nunca con un texto fijo:
+ *  - Alcance «total»: vale para los cinco planes mensuales (Fútbol,
+ *    NCAAF, NBA, NHL, MLB); la persona decide el deporte.
+ *  - Alcance de un deporte: la tarjeta nombra solo ese deporte y el
+ *    botón deja ese plan mensual preseleccionado en Planes.
+ * El botón navega a Planes (#/planes), activa la pestaña «Mensual»
+ * (con reintentos hasta CONFIRMAR que quedó activa — la v49 hacía un
+ * solo clic y la pestaña no siempre cambiaba) y, si el código es de
+ * un deporte, preselecciona ese plan.
+ * Sin código aplicado, este script no muestra nada.
  */
 (function () {
   "use strict";
@@ -25,25 +23,75 @@
   var GOTO_KEY = "epic-promo-goto-monthly";
   var BLOCK_ID = "promo-cta-block";
   var CHECK_MS = 1200;
+  var MAX_TRIES = 25;
+
+  var SPORTS = {
+    futbol: { es: "Fútbol", en: "Soccer", plan: "Fútbol Epic" },
+    ncaaf: { es: "NCAAF", en: "NCAAF", plan: "NCAAF Epic" },
+    nba: { es: "NBA", en: "NBA", plan: "NBA Epic" },
+    nhl: { es: "NHL", en: "NHL", plan: "NHL Epic" },
+    mlb: { es: "MLB", en: "MLB", plan: "MLB Epic" },
+  };
+  var ALL_KEYS = ["futbol", "ncaaf", "nba", "nhl", "mlb"];
 
   var TXT = {
     es: {
       title: function (code) {
         return "Tu código " + code + " ya está activo";
       },
-      body: "Vale por el primer mes GRATIS (USD 100) de cualquiera de los cinco deportes en plan mensual. Tú decides con cuál lo canjeas:",
-      sports: ["Fútbol", "NCAAF", "NBA", "NHL", "MLB"],
-      btn: "Elegir mi deporte mensual →",
+      bodyTotal: function (v) {
+        return v === 100
+          ? "Vale por el primer mes GRATIS (USD 100) de cualquiera de los cinco deportes en plan mensual. Tú decides con cuál lo canjeas:"
+          : "Vale por un " +
+              v +
+              "% de descuento en el primer pago de cualquiera de los cinco deportes en plan mensual. Tú decides con cuál lo canjeas:";
+      },
+      bodySport: function (v, name) {
+        return v === 100
+          ? "Vale por el primer mes GRATIS (USD 100) del plan mensual de " +
+              name +
+              ". Canjéalo aquí:"
+          : "Vale por un " +
+              v +
+              "% de descuento en el primer pago del plan mensual de " +
+              name +
+              ". Canjéalo aquí:";
+      },
+      btnTotal: "Elegir mi deporte mensual →",
+      btnSport: function (name) {
+        return "Elegir mi plan mensual de " + name + " →";
+      },
       monthlyTab: "Mensual",
+      monthlyTotal: "Total mensual",
     },
     en: {
       title: function (code) {
         return "Your " + code + " code is active";
       },
-      body: "It covers the first month FREE (USD 100) of any of the five sports on a monthly plan. You choose which sport to redeem it with:",
-      sports: ["Soccer", "NCAAF", "NBA", "NHL", "MLB"],
-      btn: "Choose my monthly sport →",
+      bodyTotal: function (v) {
+        return v === 100
+          ? "It covers the first month FREE (USD 100) of any of the five sports on a monthly plan. You choose which sport to redeem it with:"
+          : "It gives " +
+              v +
+              "% off the first payment of any of the five sports on a monthly plan. You choose which sport to redeem it with:";
+      },
+      bodySport: function (v, name) {
+        return v === 100
+          ? "It covers the first month FREE (USD 100) of the " +
+              name +
+              " monthly plan. Redeem it here:"
+          : "It gives " +
+              v +
+              "% off the first payment of the " +
+              name +
+              " monthly plan. Redeem it here:";
+      },
+      btnTotal: "Choose my monthly sport →",
+      btnSport: function (name) {
+        return "Choose my " + name + " monthly plan →";
+      },
       monthlyTab: "Monthly",
+      monthlyTotal: "Monthly total",
     },
   };
 
@@ -72,6 +120,12 @@
     return null;
   }
 
+  function scopeOf(promo) {
+    var sc =
+      typeof promo.scope_sport === "string" ? promo.scope_sport : "total";
+    return SPORTS[sc] ? sc : "total";
+  }
+
   function onAccountRoute() {
     return (window.location.hash || "").indexOf("#/cuenta") === 0;
   }
@@ -80,9 +134,6 @@
   }
 
   function findRedeemAnchor() {
-    /* El bloque se inserta tras el contenedor del canje: se busca el
-       elemento de texto del título del canje o de «Código guardado»
-       y se sube a su tarjeta/sección inmediata. */
     var needles = [
       "¿Recibiste un código promocional?",
       "Received a promo code?",
@@ -109,14 +160,22 @@
   }
 
   function injectCta(promo) {
-    if (document.getElementById(BLOCK_ID)) return;
+    var existing = document.getElementById(BLOCK_ID);
+    if (existing) {
+      if (existing.getAttribute("data-code") === promo.code) return;
+      existing.parentElement.removeChild(existing);
+    }
     var anchor = findRedeemAnchor();
     if (!anchor || !anchor.parentElement) return;
     var t = TXT[lang()];
+    var scope = scopeOf(promo);
+    var scopedSport = scope !== "total" ? SPORTS[scope] : null;
+    var sportName = scopedSport ? scopedSport[lang()] : null;
 
     var block = document.createElement("div");
     block.id = BLOCK_ID;
     block.className = "pc-block";
+    block.setAttribute("data-code", promo.code);
 
     var h = document.createElement("p");
     h.className = "pc-title";
@@ -125,15 +184,17 @@
 
     var p = document.createElement("p");
     p.className = "pc-body";
-    p.textContent = t.body;
+    p.textContent = scopedSport
+      ? t.bodySport(promo.value, sportName)
+      : t.bodyTotal(promo.value);
     block.appendChild(p);
 
     var chips = document.createElement("div");
     chips.className = "pc-chips";
-    t.sports.forEach(function (name) {
+    (scopedSport ? [scope] : ALL_KEYS).forEach(function (key) {
       var chip = document.createElement("span");
       chip.className = "pc-chip";
-      chip.textContent = name;
+      chip.textContent = SPORTS[key][lang()];
       chips.appendChild(chip);
     });
     block.appendChild(chips);
@@ -141,13 +202,17 @@
     var btn = document.createElement("button");
     btn.type = "button";
     btn.className = "pc-btn";
-    btn.textContent = t.btn;
+    btn.textContent = scopedSport ? t.btnSport(sportName) : t.btnTotal;
     btn.addEventListener("click", function () {
       try {
-        window.sessionStorage.setItem(GOTO_KEY, "1");
+        window.sessionStorage.setItem(
+          GOTO_KEY,
+          JSON.stringify({ sport: scope })
+        );
       } catch (e) {}
+      tries = 0;
+      sportTries = 0;
       window.location.hash = "#/planes";
-      /* Por si ya estamos en Planes (hash sin cambio): actuar ya. */
       setTimeout(maybeActivateMonthly, 350);
     });
     block.appendChild(btn);
@@ -155,26 +220,101 @@
     anchor.parentElement.insertBefore(block, anchor.nextSibling);
   }
 
-  function maybeActivateMonthly() {
-    var flag;
+  /* --- Aterrizaje en Planes: Mensual confirmado + deporte si aplica --- */
+  var tries = 0;
+  var sportTries = 0;
+
+  function readGoto() {
     try {
-      flag = window.sessionStorage.getItem(GOTO_KEY);
+      var raw = window.sessionStorage.getItem(GOTO_KEY);
+      return raw ? JSON.parse(raw) : null;
     } catch (e) {
-      flag = null;
+      return null;
     }
-    if (!flag || !onPlanesRoute()) return;
+  }
+  function clearGoto() {
+    try {
+      window.sessionStorage.removeItem(GOTO_KEY);
+    } catch (e) {}
+  }
+
+  function monthlyConfirmed() {
     var t = TXT[lang()];
-    var tabs = document.querySelectorAll("button");
+    if ((document.body.textContent || "").indexOf(t.monthlyTotal) !== -1) {
+      return true;
+    }
+    var tabs = document.querySelectorAll("button, [role='tab']");
     for (var i = 0; i < tabs.length; i++) {
       if ((tabs[i].textContent || "").trim() === t.monthlyTab) {
-        try {
-          window.sessionStorage.removeItem(GOTO_KEY);
-        } catch (e) {}
-        tabs[i].click();
-        return;
+        if (
+          tabs[i].getAttribute("aria-selected") === "true" ||
+          /active|selected|current/i.test(tabs[i].className || "")
+        ) {
+          return true;
+        }
       }
     }
-    /* La pestaña aún no renderiza: el intervalo reintenta. */
+    return false;
+  }
+
+  function clickMonthlyTab() {
+    var t = TXT[lang()];
+    var tabs = document.querySelectorAll("button, [role='tab']");
+    for (var i = 0; i < tabs.length; i++) {
+      if ((tabs[i].textContent || "").trim() === t.monthlyTab) {
+        tabs[i].click();
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function selectSportPlan(scope) {
+    var meta = SPORTS[scope];
+    if (!meta) return true;
+    /* Confirmación: el resumen ya muestra ese plan. */
+    var body = document.body.textContent || "";
+    if (body.indexOf(meta.plan) !== -1 && monthlyConfirmed()) {
+      /* El nombre del plan aparece también en las tarjetas; basta con
+         que el botón de ese plan figure como elegido si existe tal
+         marca; si no, se intenta el clic una vez por ciclo. */
+    }
+    var btns = document.querySelectorAll("button");
+    for (var i = 0; i < btns.length; i++) {
+      var label =
+        btns[i].getAttribute("aria-label") || btns[i].textContent || "";
+      if (
+        label.indexOf(meta.plan) !== -1 &&
+        (label.indexOf("Mensual") !== -1 || label.indexOf("Monthly") !== -1)
+      ) {
+        btns[i].click();
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function maybeActivateMonthly() {
+    var goto = readGoto();
+    if (!goto || !onPlanesRoute()) return;
+    if (!monthlyConfirmed()) {
+      if (tries < MAX_TRIES) {
+        tries++;
+        clickMonthlyTab();
+      } else {
+        clearGoto();
+      }
+      return;
+    }
+    /* Mensual confirmado. ¿El código es de un deporte? Preseleccionarlo. */
+    if (goto.sport && goto.sport !== "total") {
+      if (sportTries < 6) {
+        sportTries++;
+        selectSportPlan(goto.sport);
+        return; /* dar unos ciclos y cerrar */
+      }
+    }
+    clearGoto();
   }
 
   function tick() {
@@ -188,6 +328,8 @@
     setTimeout(tick, 60);
   });
   window.addEventListener("hashchange", function () {
+    tries = 0;
+    sportTries = 0;
     setTimeout(tick, 120);
     setTimeout(maybeActivateMonthly, 450);
   });
