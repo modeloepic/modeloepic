@@ -25,7 +25,6 @@
       fineTitle: "Cómo funciona tu acceso completo",
       fine: [
         "El desbloqueo total se activa al mantener activas dos suscripciones pagadas de deportes distintos. Cuentan la modalidad semanal y la mensual, y se pueden combinar.",
-        "Las pruebas gratuitas de 3 días no cuentan para el desbloqueo.",
         "Mientras ambas suscripciones estén activas, tu cuenta accede a todas las secciones deportivas de Epic sin costo adicional.",
         "Si una de las dos suscripciones vence o se cancela, al terminar su período ya pagado el acceso vuelve al deporte que permanezca activo.",
         "Cada deporte publica estudios y parlays a diario únicamente durante su temporada; fuera de temporada no se genera contenido nuevo de ese deporte.",
@@ -40,7 +39,6 @@
       fineTitle: "How your full access works",
       fine: [
         "The all-sports unlock activates when you keep two paid subscriptions to different sports active. Weekly and monthly plans both count and can be combined.",
-        "The 3-day free trials do not count toward the unlock.",
         "While both subscriptions are active, your account accesses every Epic sports section at no additional cost.",
         "If one of the two subscriptions expires or is cancelled, once its paid period ends your access returns to the sport that remains active.",
         "Each sport publishes studies and parlays daily only during its season; out of season, no new content is produced for that sport.",
