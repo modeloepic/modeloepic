@@ -1451,3 +1451,14 @@ a.mysub-head{text-decoration:none}
 .cf-copy:hover{background:rgba(201,162,39,.14)}
 .cf-step{margin:.65rem 0 0;font-size:.875rem;line-height:1.5;color:var(--board-dim,#b8b4a7)}
 .cf-hint{margin:.8rem 0 0;font-size:.85rem;line-height:1.5;color:var(--board-dim,#b8b4a7)}
+
+/* Epic v47 — Aviso de «pago solo con cuenta» (.cg-*): lo muestra
+   assets/checkout-guard.js cuando un visitante sin sesión intenta
+   suscribirse; el pago exige estar registrado para que el dinero
+   quede ligado a la cuenta que paga. */
+.cg-toast{position:fixed;left:50%;bottom:1.25rem;transform:translate(-50%,1rem);z-index:9999;width:min(92vw,30rem);box-sizing:border-box;padding:1.1rem 2.6rem 1.1rem 1.25rem;background:var(--board,#17171c);border:1px solid var(--accent,#c9a227);border-radius:var(--radius,14px);box-shadow:0 12px 40px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease}
+.cg-toast.cg-show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.cg-msg{margin:0 0 .8rem;font-size:.95rem;line-height:1.55;color:var(--board-text,#f2efe6)}
+.cg-btn{display:block;width:100%;box-sizing:border-box;padding:.75rem 1.1rem;border:none;border-radius:999px;background:var(--accent,#c9a227);color:#101013;font-family:"Archivo",sans-serif;font-size:.95rem;font-weight:800;cursor:pointer}
+.cg-btn:hover{opacity:.88}
+.cg-close{position:absolute;top:.5rem;right:.6rem;border:none;background:transparent;color:var(--board-dim,#b8b4a7);font-size:1rem;cursor:pointer;padding:.25rem}
