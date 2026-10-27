@@ -1,4 +1,4 @@
-/* Epic v53 — Ventana de opciones al aplicar un código (Fernando, 2026-10-27).
+/* Epic v55 — Ventana de opciones al aplicar un código (Fernando, 2026-10-27).
  *
  * Fernando pidió que al aplicar un código promocional — este y
  * todos los futuros — se abra una VENTANA que le diga a la persona
@@ -16,11 +16,13 @@
  *    (alcance y valor del estado «epic-promo»): alcance total lista
  *    los cinco planes mensuales como opciones tocables; alcance de
  *    un deporte lista solo ese plan.
- *  - Tocar una opción cierra la ventana y lleva a Planes con la
- *    pestaña Mensual activa y ese deporte preseleccionado (lo
- *    ejecuta promo-cta.js con la misma señal «epic-promo-goto-
- *    monthly»). El botón secundario lleva a Planes en Mensual sin
- *    preselección, y la ✕ cierra sin navegar.
+ *  - Tocar una opción cierra la ventana y va DIRECTO al checkout
+ *    de Whop del plan mensual de ese deporte (cambio v55, orden de
+ *    Fernando: nada de pasar por Planes primero; el cobro se hace
+ *    en Whop). Whop no recibe el código por el enlace — verificado
+ *    en v46 — así que la ventana recuerda pegarlo en «Add promo
+ *    code» de Whop. El botón secundario sí lleva a Planes en
+ *    Mensual sin preselección, y la ✕ cierra sin navegar.
  *  - La tarjeta persistente de «Mi cuenta» (v49+) queda como
  *    recordatorio; esta ventana es el momento del canje.
  */
@@ -42,6 +44,18 @@
     mlb: { es: "MLB", en: "MLB", plan: "MLB Epic" },
   };
   var ALL_KEYS = ["futbol", "ncaaf", "nba", "nhl", "mlb"];
+
+  /* Planes mensuales de Whop, verificados contra el panel y el
+     bundle (auditoría 2026-10-27). El checkout estándar es
+     https://whop.com/checkout/<planId> — el mismo destino que usa
+     checkout-fix.js desde el modal de pago del sitio. */
+  var MONTHLY_PLAN_IDS = {
+    futbol: "plan_uBL2Bj5iHnTb3",
+    ncaaf: "plan_hOUzr71Mn8IPI",
+    nba: "plan_6oQYfDyUdoquf",
+    nhl: "plan_bxvO6X36T8quS",
+    mlb: "plan_OGB3MQMIsVsHT",
+  };
 
   var TXT = {
     es: {
@@ -66,6 +80,13 @@
         return v === 100
           ? "Plan mensual · USD 100/mes · primer mes GRATIS con tu código"
           : "Plan mensual · primer pago con " + v + "% de descuento";
+      },
+      directNote: function (code) {
+        return (
+          "Al tocar tu deporte irás directo al checkout de Whop. En Whop, pega tu código " +
+          code +
+          " en «Add promo code» y dale «Apply» para activar tu descuento."
+        );
       },
       all: "Ver las opciones en Planes →",
       close: "Cerrar",
@@ -92,6 +113,13 @@
         return v === 100
           ? "Monthly plan · USD 100/mo · first month FREE with your code"
           : "Monthly plan · first payment " + v + "% off";
+      },
+      directNote: function (code) {
+        return (
+          "Tapping your sport takes you straight to the Whop checkout. On Whop, paste your code " +
+          code +
+          " under “Add promo code” and hit “Apply” to activate your discount."
+        );
       },
       all: "See the options in Plans →",
       close: "Close",
@@ -154,6 +182,15 @@
     window.location.hash = "#/planes";
   }
 
+  function goToWhop(sportKey) {
+    var planId = MONTHLY_PLAN_IDS[sportKey];
+    if (!planId) {
+      goToPlanes(sportKey);
+      return;
+    }
+    window.location.assign("https://whop.com/checkout/" + planId);
+  }
+
   function closeModal() {
     var el = document.getElementById(MODAL_ID);
     if (el && el.parentElement) el.parentElement.removeChild(el);
@@ -212,11 +249,16 @@
       opt.appendChild(note);
       opt.addEventListener("click", function () {
         closeModal();
-        goToPlanes(key);
+        goToWhop(key);
       });
       list.appendChild(opt);
     });
     box.appendChild(list);
+
+    var foot = document.createElement("p");
+    foot.className = "pm-foot";
+    foot.textContent = t.directNote(promo.code);
+    box.appendChild(foot);
 
     if (!scoped) {
       var all = document.createElement("button");
