@@ -1,4 +1,4 @@
-/* Epic v42/v46 — Pago por el checkout estándar de Whop.
+/* Epic v42/v46/v63 — Pago por el checkout estándar de Whop.
  *
  * Problema verificado en vivo (2026-10-27): la ruta embebida de Whop
  * devuelve «This checkout is no longer available» para todos los
@@ -34,6 +34,8 @@
       copied: "¡Copiado!",
       step: "En la página de Whop, toca «Add promo code», pega este código y dale «Apply» para activar tu descuento.",
       hint: "¿Tienes un código de descuento? En la página de Whop lo ingresas en «Add promo code».",
+      emailTitle: "⚠ MUY IMPORTANTE: usa el mismo correo",
+      emailBody: "Paga en Whop con el MISMO correo de tu cuenta Epic, este con el que iniciaste sesión aquí. Tu suscripción se activa automáticamente con ese correo apenas completes el pago. Si pagas con otro correo, tu acceso no se activará solo.",
     },
     en: {
       note: "Your payment is completed on Whop's secure page.",
@@ -43,6 +45,8 @@
       copied: "Copied!",
       step: "On the Whop page, tap “Add promo code”, paste this code and hit “Apply” to activate your discount.",
       hint: "Have a discount code? On the Whop page, enter it under “Add promo code”.",
+      emailTitle: "⚠ VERY IMPORTANT: use the same email",
+      emailBody: "Pay on Whop with the SAME email as your Epic account, the one you signed in with here. Your subscription activates automatically with that email as soon as you pay. If you pay with a different email, your access will not activate on its own.",
     },
   };
 
@@ -103,6 +107,18 @@
     note.textContent = t.note;
     wrap.appendChild(note);
 
+    var emailBox = document.createElement("div");
+    emailBox.className = "cf-emailbox";
+    var emailTitle = document.createElement("p");
+    emailTitle.className = "cf-emailtitle";
+    emailTitle.textContent = t.emailTitle;
+    emailBox.appendChild(emailTitle);
+    var emailBody = document.createElement("p");
+    emailBody.className = "cf-emailbody";
+    emailBody.textContent = t.emailBody;
+    emailBox.appendChild(emailBody);
+    wrap.appendChild(emailBox);
+
     if (promo) {
       var box = document.createElement("div");
       box.className = "cf-codebox";
@@ -144,6 +160,14 @@
     a.target = "_blank";
     a.rel = "noopener";
     a.textContent = t.btn + " →";
+    a.addEventListener("click", function () {
+      try {
+        window.sessionStorage.setItem(
+          "epic-awaiting-payment",
+          String(Date.now())
+        );
+      } catch (e) {}
+    });
     wrap.appendChild(a);
 
     if (!promo) {

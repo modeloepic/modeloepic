@@ -1495,3 +1495,13 @@ a.mysub-head{text-decoration:none}
 .pm-foot{margin:0 0 1rem;padding:.7rem .85rem;border:1px dashed var(--accent,#c9a227);border-radius:10px;background:rgba(201,162,39,.09);font-size:.9rem;line-height:1.55;color:var(--board-text,#f2efe6)}
 #promo-cta-block .pc-chip{cursor:pointer;background:transparent;font:inherit}
 #promo-cta-block .pc-note{margin:0 0 1rem;padding:.7rem .85rem;border:1px dashed var(--accent,#c9a227);border-radius:10px;background:rgba(201,162,39,.09);font-size:.92rem;line-height:1.55;color:var(--board-text,#f2efe6)}
+
+/* Epic v63 — Aviso del mismo correo (.cf-emailbox en el modal de pago,
+   .pm-emailbox en la ventana de código, .pc-emailbox en Mi cuenta):
+   la suscripción se activa con el correo de la cuenta Epic; si el
+   cliente paga en Whop con otro correo, el acceso no se activa solo. */
+.cf-emailbox{margin:0 0 1.1rem;padding:1rem 1.1rem;border:2px solid var(--accent,#c9a227);border-radius:var(--radius,14px);background:rgba(201,162,39,.13);text-align:left}
+.cf-emailtitle{margin:0 0 .4rem;font-family:"Archivo",sans-serif;font-size:1.02rem;font-weight:800;color:var(--accent-bright,#e6c65a)}
+.cf-emailbody{margin:0;font-size:.98rem;line-height:1.55;color:var(--board-text,#f2efe6)}
+.pm-emailbox{margin:0 0 1rem;padding:.85rem .95rem;border:2px solid var(--accent,#c9a227);border-radius:10px;background:rgba(201,162,39,.13);font-size:.98rem;font-weight:600;line-height:1.55;color:var(--board-text,#f2efe6);text-align:left}
+#promo-cta-block .pc-emailbox{margin:0 0 1rem;padding:.85rem .95rem;border:2px solid var(--accent,#c9a227);border-radius:10px;background:rgba(201,162,39,.13);font-size:.98rem;font-weight:600;line-height:1.55;color:var(--board-text,#f2efe6);text-align:left}

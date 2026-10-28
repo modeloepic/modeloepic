@@ -122,6 +122,11 @@
     },
   };
 
+  var EMAILNOTE = {
+    es: "⚠ MUY IMPORTANTE: usa el mismo correo — Paga en Whop con el MISMO correo de tu cuenta Epic, este con el que iniciaste sesión aquí. Tu suscripción se activa automáticamente con ese correo apenas completes el pago. Si pagas con otro correo, tu acceso no se activará solo.",
+    en: "⚠ VERY IMPORTANT: use the same email — Pay on Whop with the SAME email as your Epic account, the one you signed in with here. Your subscription activates automatically with that email as soon as you pay. If you pay with a different email, your access will not activate on its own.",
+  };
+
   function lang() {
     try {
       return window.localStorage.getItem("epic-lang") === "en" ? "en" : "es";
@@ -234,6 +239,11 @@
     note.className = "pc-note";
     note.textContent = t.note(promo.code);
     block.appendChild(note);
+
+    var emailBox = document.createElement("p");
+    emailBox.className = "pc-emailbox";
+    emailBox.textContent = EMAILNOTE[lang()];
+    block.appendChild(emailBox);
 
     var btn = document.createElement("button");
     btn.type = "button";
